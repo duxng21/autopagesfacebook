@@ -36,9 +36,10 @@ function uploadFile($file, $folderSave){
 }
 
 function deleteFile($file){
+    if (!$file) return; // không có file thì bỏ qua
     $pathDelete = PATH_ROOT . $file;
     if (file_exists($pathDelete)) {
-        unlink($pathDelete); // Hàm unlink dùng để xóa file
+        unlink($pathDelete);
     }
 }
 
@@ -169,4 +170,28 @@ function fbPostVideo(string $pageId, string $pageToken, string $absPath, string 
     }
 
     return fbApiPost($url, $params, true);
+}
+
+function fbDeletePost(string $postId, string $pageToken): array
+{
+    $url = "https://graph.facebook.com/" . fbGraphVersion() . "/{$postId}";
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST => 'DELETE',
+        CURLOPT_POSTFIELDS => http_build_query([
+            'access_token' => $pageToken
+        ])
+    ]);
+    $raw = curl_exec($ch);
+    $err = curl_error($ch);
+    curl_close($ch);
+
+    if ($err) {
+        return ['error' => ['message' => $err]];
+    }
+
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : ['error' => ['message' => 'Invalid JSON']];
 }

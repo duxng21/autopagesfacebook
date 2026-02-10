@@ -1,5 +1,10 @@
 <?php require_once(PATH_ROOT . '/views/layouts/header.php') ?>
 <?php require_once(PATH_ROOT . '/views/layouts/menu.php') ?>
+<?php
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(16));
+}
+?>
 <!-- BEGIN: Content-->
 <div class="app-content content">
     <div class="content-overlay"></div>
@@ -41,8 +46,11 @@
                                         <?php else: ?>
                                             <img class="card-img img-fluid mb-1 post-media" src="<?= $imgDefault ?>" alt="Default">
                                         <?php endif; ?>
-
-                                        <h5 class="mt-1"><?= htmlspecialchars($post['content']) ?></h5>
+                                        <?php
+                                        $text = $post['content'];
+                                        if (mb_strlen($text) > 120) $text = mb_substr($text, 0, 38) . '...';
+                                        ?>
+                                        <h5 class="mt-1"><?= htmlspecialchars($text) ?></h5>
                                         <div class="card-btns d-flex justify-content-between mt-2">
                                             <?php if ($post['status'] === 'posted'): ?>
                                                 <button class="btn bg-gradient-success mr-1 mb-1 waves-effect waves-light btn-sm">Đã đăng</button>
@@ -65,7 +73,15 @@
                                         <hr class="my-1">
                                         <div class="card-btns d-flex justify-content-between mt-2">
                                             <a href="#" class="btn gradient-light-primary text-white waves-effect waves-light">Đăng lại</a>
-                                            <a href="#" class="btn btn-outline-primary waves-effect waves-light">Xoá bài</a>
+                                            <form method="POST" action="?act=post-delete" style="display:inline;">
+                                                <input type="hidden" name="id" value="<?= (int)$post['id'] ?>">
+                                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
+                                                <button type="submit" class="btn btn-outline-primary waves-effect waves-light"
+                                                    onclick="return confirm('Xoá bài này trên Facebook?');">
+                                                    Xoá bài
+                                                </button>
+                                            </form>
+
                                         </div>
                                     </div>
                                 </div>

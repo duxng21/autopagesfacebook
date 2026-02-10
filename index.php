@@ -47,4 +47,5 @@ match ($act) {
     'pages-delete' => (new PagesController())->delete(),
     'posts'   => (new PostsController())->index(),
     'post-add'=> (new PostsController())->create(),
+    'post-delete' => (new PostsController())->delete(),
 };

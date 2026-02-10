@@ -69,4 +69,13 @@ class FbPageModel extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function getByPageId(string $pageId): ?array
+    {
+        $sql = "SELECT * FROM fb_pages WHERE page_id = :page_id LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':page_id' => $pageId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
 }

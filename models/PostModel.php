@@ -15,4 +15,21 @@ class PostModel extends BaseModel
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute($data);
     }
+
+    public function getById(int $id): ?array
+    {
+        $sql = "SELECT * FROM posts WHERE id = :id LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':id' => $id]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public function deleteById(int $id): bool
+    {
+        $sql = "DELETE FROM posts WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([':id' => $id]);
+    }
+
 }

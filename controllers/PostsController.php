@@ -68,8 +68,8 @@ class PostsController
         $hasImage = false;
         foreach ($mediaFiles as $f) {
             $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
-            if (in_array($ext, ['mp4','mov','avi','mkv'])) $hasVideo = true;
-            if (in_array($ext, ['jpg','jpeg','png','gif','webp'])) $hasImage = true;
+            if (in_array($ext, ['mp4', 'mov', 'avi', 'mkv'])) $hasVideo = true;
+            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) $hasImage = true;
         }
 
         if ($hasVideo && $hasImage) {
@@ -217,4 +217,73 @@ class PostsController
         exit;
     }
 
+    public function delete()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $csrf = $_POST['csrf'] ?? '';
+        if (empty($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], $csrf)) {
+            set_status('danger', 'Phiên làm việc không hợp lệ.');
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            set_status('danger', 'Thiếu id bài.');
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $post = $this->postModel->getById($id);
+        if (!$post || empty($post['fb_post_id'])) {
+            set_status('danger', 'Không tìm thấy fb_post_id để xoá.');
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $pageModel = new FbPageModel();
+        $page = $pageModel->getByPageId($post['page_id']);
+
+        if (!$page || empty($page['token_page'])) {
+            set_status('danger', 'Thiếu token page.');
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $res = fbDeletePost($post['fb_post_id'], $page['token_page']);
+
+        if (!empty($res['error'])) {
+            set_status('danger', $res['error']['message'] ?? 'Xoá thất bại.');
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        // Xoá file local nếu có
+        $mediaPath = $post['media_path'] ?? null;
+        if ($mediaPath) {
+            $isJson = is_string($mediaPath) && strlen($mediaPath) > 0 && $mediaPath[0] === '[';
+            if ($isJson) {
+                $paths = json_decode($mediaPath, true);
+                if (is_array($paths)) {
+                    foreach ($paths as $p) {
+                        deleteFile($p);
+                    }
+                }
+            } else {
+                deleteFile($mediaPath);
+            }
+        }
+
+
+        // Tuỳ chọn: xoá DB sau khi xoá FB
+        $this->postModel->deleteById($id);
+
+        set_status('success', 'Đã xoá bài trên Facebook.');
+        header('Location: ?act=posts');
+        exit;
+    }
 }
