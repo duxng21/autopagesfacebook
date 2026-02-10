@@ -9,7 +9,7 @@
         </div>
         <div class="content-body">
             <section>
-                <a href="" class="btn btn-relief-primary mr-1 mb-1 waves-effect waves-light"><i class="feather icon-plus-square"></i> Thêm</a>
+                <a href="?act=post-add" class="btn btn-relief-primary mr-1 mb-1 waves-effect waves-light"><i class="feather icon-plus-square"></i> Thêm</a>
             </section>
             <section id="basic-examples">
                 <div class="row match-height">
@@ -17,7 +17,7 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <img class="card-img img-fluid mb-1" src="<?= BASE_URL ?>/views/duxng_theme/app-assets/images/pages/content-img-2.jpg" alt="Card image cap">
+                                    <img class="card-img img-fluid mb-1 post-media" src="<?= BASE_URL ?>/views/duxng_theme/app-assets/images/pages/content-img-2.jpg" alt="Card image cap">
                                     <h5 class="mt-1">Nội dung bài viết</h5>
                                     <div class="card-btns d-flex justify-content-between mt-2">
                                         <button class="btn bg-gradient-success mr-1 mb-1 waves-effect waves-light btn-sm">Đã đăng</button>
@@ -36,7 +36,7 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <img class="card-img img-fluid mb-1" src="<?= BASE_URL ?>/views/duxng_theme/app-assets/images/pages/content-img-2.jpg" alt="Card image cap">
+                                    <img class="card-img img-fluid mb-1 post-media" src="<?= BASE_URL ?>/views/duxng_theme/app-assets/images/pages/content-img-2.jpg" alt="Card image cap">
                                     <h5 class="mt-1">Nội dung bài viết</h5>
                                     <div class="card-btns d-flex justify-content-between mt-2">
                                         <button class="btn bg-gradient-success mr-1 mb-1 waves-effect waves-light btn-sm">Đã đăng</button>
@@ -55,7 +55,9 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <img class="card-img img-fluid mb-1" src="<?= BASE_URL ?>/views/duxng_theme/app-assets/images/pages/content-img-2.jpg" alt="Card image cap">
+                                    <video class="card-img img-fluid mb-1 post-media" controls preload="metadata">
+                                        <source src="<?= BASE_URL ?>/uploads/video1.mp4" type="video/mp4">
+                                    </video>
                                     <h5 class="mt-1">Nội dung bài viết</h5>
                                     <div class="card-btns d-flex justify-content-between mt-2">
                                         <button class="btn bg-gradient-dark mr-1 mb-1 waves-effect waves-light btn-sm">10/02/2026 - 12:36</button>
