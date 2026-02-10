@@ -3,10 +3,11 @@ require_once './commons/env.php';
 require_once './commons/function.php';
 require_once './models/BaseModel.php';
 require_once './models/FbPageModel.php';
+require_once './models/PostModel.php';
 
+// ===== Cron: cập nhật token page =====
 $model = new FbPageModel();
 $pages = $model->getAll();
-
 $results = [];
 
 foreach ($pages as $p) {
@@ -55,5 +56,10 @@ foreach ($pages as $p) {
     ];
 }
 
+// ===== Cron: cập nhật trạng thái bài lên lịch (giờ VN) =====
+$postModel = new PostModel();
+$postModel->markScheduledToPosted();
+
+// ===== Output =====
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode(['ok' => true, 'results' => $results], JSON_PRETTY_PRINT);

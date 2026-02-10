@@ -40,7 +40,6 @@ match ($act) {
     '/'       => (new ProductController())->Home(),
     'login'   => (new LoginController())->login(),   // GET show + POST handle
     'logout'  => (new LoginController())->logout(),
-    default   => (new ProductController())->Home(),
     'pages'   => ($_SERVER['REQUEST_METHOD'] === 'POST')
         ? (new PagesController())->store()
         : (new PagesController())->index(),
@@ -48,4 +47,6 @@ match ($act) {
     'posts'   => (new PostsController())->index(),
     'post-add'=> (new PostsController())->create(),
     'post-delete' => (new PostsController())->delete(),
+    'post-repost' => (new PostsController())->repost(),
+    default   => (new ProductController())->Home(),
 };

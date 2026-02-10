@@ -4,6 +4,8 @@
 if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(16));
 }
+$pageModel = new FbPageModel();
+$allPages = $pageModel->getAll();
 ?>
 <!-- BEGIN: Content-->
 <div class="app-content content">
@@ -29,7 +31,6 @@ if (empty($_SESSION['csrf'])) {
                                         $mediaType = $post['media_type'];
                                         $imgDefault = BASE_URL . '/views/duxng_theme/app-assets/images/pages/content-img-2.jpg';
 
-                                        // Nếu media_path là JSON (nhiều ảnh)
                                         $paths = null;
                                         if ($mediaPath && is_string($mediaPath) && $mediaPath[0] === '[') {
                                             $paths = json_decode($mediaPath, true);
@@ -46,11 +47,13 @@ if (empty($_SESSION['csrf'])) {
                                         <?php else: ?>
                                             <img class="card-img img-fluid mb-1 post-media" src="<?= $imgDefault ?>" alt="Default">
                                         <?php endif; ?>
+
                                         <?php
                                         $text = $post['content'];
                                         if (mb_strlen($text) > 120) $text = mb_substr($text, 0, 38) . '...';
                                         ?>
                                         <h5 class="mt-1"><?= htmlspecialchars($text) ?></h5>
+
                                         <div class="card-btns d-flex justify-content-between mt-2">
                                             <?php if ($post['status'] === 'posted'): ?>
                                                 <button class="btn bg-gradient-success mr-1 mb-1 waves-effect waves-light btn-sm">Đã đăng</button>
@@ -70,9 +73,17 @@ if (empty($_SESSION['csrf'])) {
                                                 <button class="btn bg-gradient-secondary mr-1 mb-1 waves-effect waves-light btn-sm">Text</button>
                                             <?php endif; ?>
                                         </div>
+
                                         <hr class="my-1">
+
                                         <div class="card-btns d-flex justify-content-between mt-2">
-                                            <a href="#" class="btn gradient-light-primary text-white waves-effect waves-light">Đăng lại</a>
+                                            <button type="button"
+                                                class="btn gradient-light-primary text-white waves-effect waves-light"
+                                                data-toggle="modal"
+                                                data-target="#repostModal<?= (int)$post['id'] ?>">
+                                                Đăng lại
+                                            </button>
+
                                             <form method="POST" action="?act=post-delete" style="display:inline;">
                                                 <input type="hidden" name="id" value="<?= (int)$post['id'] ?>">
                                                 <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
@@ -81,14 +92,69 @@ if (empty($_SESSION['csrf'])) {
                                                     Xoá bài
                                                 </button>
                                             </form>
-
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Modal ngay sau card -->
+                            <div class="modal fade" id="repostModal<?= (int)$post['id'] ?>" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <form method="POST" action="?act=post-repost">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Chọn pages để đăng lại</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <input type="hidden" name="id" value="<?= (int)$post['id'] ?>">
+                                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
+                                                <div class="form-group">
+                                                    <label>Pages</label>
+                                                    <select class="select2 form-control" name="page_ids[]" multiple="multiple">
+                                                        <?php foreach ($allPages as $pg): ?>
+                                                            <option value="<?= htmlspecialchars($pg['page_id']) ?>">
+                                                                <?= htmlspecialchars($pg['page_name']) ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Đóng</button>
+                                                <button type="submit" class="btn btn-primary">Đăng lại</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End modal -->
+
                         </div>
                     <?php endforeach; ?>
                 </div>
+                <?php if (!empty($totalPages) && $totalPages > 1): ?>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mt-2">
+                            <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                                <a class="page-link" href="?act=posts&page=<?= max(1, $page - 1) ?>">«</a>
+                            </li>
+
+                            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                                <li class="page-item <?= ($i === $page) ? 'active' : '' ?>">
+                                    <a class="page-link" href="?act=posts&page=<?= $i ?>"><?= $i ?></a>
+                                </li>
+                            <?php endfor; ?>
+
+                            <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
+                                <a class="page-link" href="?act=posts&page=<?= min($totalPages, $page + 1) ?>">»</a>
+                            </li>
+                        </ul>
+                    </nav>
+                <?php endif; ?>
+
             </section>
 
         </div>

@@ -10,7 +10,14 @@ class PostsController
 
     public function index()
     {
-        $posts = $this->postModel->getAll();
+        $perPage = 8;
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $total = $this->postModel->countAll();
+        $totalPages = (int)ceil($total / $perPage);
+        $offset = ($page - 1) * $perPage;
+
+        $posts = $this->postModel->getPage($perPage, $offset);
+
         require_once './views/pages/posts/index.php';
     }
 
@@ -286,4 +293,163 @@ class PostsController
         header('Location: ?act=posts');
         exit;
     }
+
+    public function repost()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $csrf = $_POST['csrf'] ?? '';
+        if (empty($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], $csrf)) {
+            set_status('danger', 'Phiên làm việc không hợp lệ.');
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        $pageIds = $_POST['page_ids'] ?? [];
+
+        if ($id <= 0 || empty($pageIds)) {
+            set_status('danger', 'Thiếu bài viết hoặc page.');
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $post = $this->postModel->getById($id);
+        if (!$post) {
+            set_status('danger', 'Không tìm thấy bài viết.');
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $pageModel = new FbPageModel();
+        $pages = $pageModel->getByPageIds($pageIds);
+
+        $content = $post['content'];
+        $mediaType = $post['media_type'];
+        $mediaPath = $post['media_path'];
+
+        $hasError = false;
+        $messages = [];
+
+        foreach ($pages as $p) {
+            $pageId = $p['page_id'];
+            $pageToken = $p['token_page'];
+
+            if (!$pageToken) {
+                $hasError = true;
+                $messages[] = "{$pageId}: thiếu page token";
+                continue;
+            }
+
+            // Text only
+            if ($mediaType === 'none' || empty($mediaPath)) {
+                $res = fbPostText($pageId, $pageToken, $content, null);
+                if (!empty($res['error'])) {
+                    $hasError = true;
+                    $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
+                } else {
+                    $this->postModel->create([
+                        ':page_id' => $pageId,
+                        ':fb_post_id' => $res['id'] ?? null,
+                        ':content' => $content,
+                        ':media_type' => 'none',
+                        ':media_path' => null,
+                        ':status' => 'posted',
+                        ':scheduled_at' => null,
+                        ':posted_at' => date('Y-m-d H:i:s'),
+                    ]);
+                    $messages[] = "{$pageId}: ok";
+                }
+                continue;
+            }
+
+            // Image(s)
+            if ($mediaType === 'image') {
+                $paths = null;
+                if (is_string($mediaPath) && strlen($mediaPath) > 0 && $mediaPath[0] === '[') {
+                    $paths = json_decode($mediaPath, true);
+                }
+                $list = is_array($paths) ? $paths : [$mediaPath];
+                $photoIds = [];
+
+                foreach ($list as $mp) {
+                    $abs = PATH_ROOT . $mp;
+                    if (!file_exists($abs)) {
+                        $hasError = true;
+                        $messages[] = "{$pageId}: thiếu file ảnh";
+                        continue 2;
+                    }
+                    $up = fbUploadPhotoUnpublished($pageId, $pageToken, $abs);
+                    if (!empty($up['id'])) $photoIds[] = $up['id'];
+                }
+
+                if (empty($photoIds)) {
+                    $hasError = true;
+                    $messages[] = "{$pageId}: upload ảnh thất bại";
+                    continue;
+                }
+
+                $res = fbPostImages($pageId, $pageToken, $content, $photoIds, null);
+                if (!empty($res['error'])) {
+                    $hasError = true;
+                    $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
+                } else {
+                    $this->postModel->create([
+                        ':page_id' => $pageId,
+                        ':fb_post_id' => $res['id'] ?? null,
+                        ':content' => $content,
+                        ':media_type' => 'image',
+                        ':media_path' => $mediaPath,
+                        ':status' => 'posted',
+                        ':scheduled_at' => null,
+                        ':posted_at' => date('Y-m-d H:i:s'),
+                    ]);
+                    $messages[] = "{$pageId}: ok";
+                }
+                continue;
+            }
+
+            // Video
+            if ($mediaType === 'video') {
+                $abs = PATH_ROOT . $mediaPath;
+                if (!file_exists($abs)) {
+                    $hasError = true;
+                    $messages[] = "{$pageId}: thiếu file video";
+                    continue;
+                }
+
+                $res = fbPostVideo($pageId, $pageToken, $abs, $content, null);
+                if (!empty($res['error'])) {
+                    $hasError = true;
+                    $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
+                } else {
+                    $this->postModel->create([
+                        ':page_id' => $pageId,
+                        ':fb_post_id' => $res['id'] ?? null,
+                        ':content' => $content,
+                        ':media_type' => 'video',
+                        ':media_path' => $mediaPath,
+                        ':status' => 'posted',
+                        ':scheduled_at' => null,
+                        ':posted_at' => date('Y-m-d H:i:s'),
+                    ]);
+                    $messages[] = "{$pageId}: ok";
+                }
+                continue;
+            }
+        }
+
+        if ($hasError) {
+            set_status('danger', implode(' | ', $messages));
+        } else {
+            set_status('success', implode(' | ', $messages));
+        }
+
+        header('Location: ?act=posts');
+        exit;
+    }
+
 }

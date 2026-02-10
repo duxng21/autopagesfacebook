@@ -32,4 +32,32 @@ class PostModel extends BaseModel
         return $stmt->execute([':id' => $id]);
     }
 
+    public function countAll(): int
+    {
+        $sql = "SELECT COUNT(*) AS total FROM posts";
+        $row = $this->conn->query($sql)->fetch();
+        return (int)($row['total'] ?? 0);
+    }
+
+    public function getPage(int $limit, int $offset): array
+    {
+        $sql = "SELECT * FROM posts ORDER BY id DESC LIMIT :limit OFFSET :offset";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function markScheduledToPosted(): void
+    {
+        $sql = "UPDATE posts
+                SET status = 'posted',
+                    posted_at = CONVERT_TZ(NOW(), '+00:00', '+07:00')
+                WHERE status = 'scheduled'
+                AND scheduled_at IS NOT NULL
+                AND scheduled_at <= CONVERT_TZ(NOW(), '+00:00', '+07:00')";
+        $this->conn->exec($sql);
+    }
+
 }

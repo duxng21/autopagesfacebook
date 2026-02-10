@@ -49,6 +49,19 @@
             }
         });
     </script>
+    <script>
+        $(function () {
+        $('.select2').each(function () {
+            var $el = $(this);
+            var $modal = $el.closest('.modal');
+            $el.select2({
+            width: '100%',
+            dropdownParent: $modal.length ? $modal : $(document.body),
+            placeholder: 'Chọn pages'
+            });
+        });
+        });
+    </script>
 
 </body>
 <!-- END: Body-->
