@@ -47,3 +47,26 @@ function menu_active($act)
     $current = $_GET['act'] ?? '/';
     return $current === $act ? 'active' : '';
 }
+
+function set_status(string $type, string $message)
+{
+    $_SESSION['status'] = [
+        'type' => $type,     // success | danger | warning | info
+        'message' => $message
+    ];
+}
+
+function show_status()
+{
+    if (!empty($_SESSION['status'])) {
+        $type = $_SESSION['status']['type'] ?? 'info';
+        $message = $_SESSION['status']['message'] ?? '';
+        unset($_SESSION['status']);
+
+        if ($message !== '') {
+            echo '<div class="alert alert-' . htmlspecialchars($type) . '">';
+            echo htmlspecialchars($message);
+            echo '</div>';
+        }
+    }
+}

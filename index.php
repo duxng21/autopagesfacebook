@@ -1,24 +1,29 @@
 <?php 
-// Require toàn bộ các file khai báo môi trường, thực thi,...(không require view)
+session_start();
 
 // Require file Common
-require_once './commons/env.php'; // Khai báo biến môi trường
-require_once './commons/function.php'; // Hàm hỗ trợ
+require_once './commons/env.php';
+require_once './commons/function.php';
 
-// Require toàn bộ file Controllers
+// Require Controllers
 require_once './controllers/ProductController.php';
+require_once './controllers/LoginController.php';
 
-// Require toàn bộ file Models
+// Require Models
+require_once './models/BaseModel.php';
 require_once './models/ProductModel.php';
+require_once './models/AdminModel.php';
 
-// Route
 $act = $_GET['act'] ?? '/';
 
-
-// Để bảo bảo tính chất chỉ gọi 1 hàm Controller để xử lý request thì mình sử dụng match
+if (!isset($_SESSION['user']) && !in_array($act, ['login', 'logout'], true)) {
+    header('Location: ?act=login');
+    exit;
+}
 
 match ($act) {
-    // Trang chủ
-    '/'=>(new ProductController())->Home(),
-
+    '/'       => (new ProductController())->Home(),
+    'login'   => (new LoginController())->login(),   // GET show + POST handle
+    'logout'  => (new LoginController())->logout(),
+    default   => (new ProductController())->Home(),
 };

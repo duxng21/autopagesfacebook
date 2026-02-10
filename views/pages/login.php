@@ -1,10 +1,3 @@
-<?php if (!empty($_SESSION['user'])): ?>
-<script>
-    setTimeout(() => {
-        window.location.href = "<?= BASE_URL ?>/";
-    }, 1200);
-</script>
-<?php endif; ?>
 <!DOCTYPE html>
 <html class="loading" lang="en" data-textdirection="ltr">
 <!-- BEGIN: Head-->
@@ -90,7 +83,22 @@
                                                         </div>
                                                         <label for="user-password">Mật khẩu</label>
                                                     </fieldset>
-                                                    <?php show_status(); ?>
+                                                    <?php if (!empty($error)): ?>
+                                                        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+                                                    <?php endif; ?>
+                                                    <?php
+                                                        $msg = $_GET['msg'] ?? '';
+                                                        if ($msg === 'logout') {
+                                                            echo '<div class="alert alert-success">Đã đăng xuất.</div>';
+                                                        } elseif ($msg === 'login_ok') {
+                                                            echo '<div class="alert alert-success">Đăng nhập thành công.</div>';
+                                                            echo '<script>
+                                                                setTimeout(function () {
+                                                                    window.location.href = "?act=/";
+                                                                }, 1200);
+                                                            </script>';
+                                                        }
+                                                    ?>
                                                     <button type="submit" class="btn bg-gradient-success mr-1 mb-1 waves-effect waves-light btn-block">Đăng nhập</button>
                                                 </form>
                                             </div>
