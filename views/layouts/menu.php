@@ -22,7 +22,7 @@
                 </li>
                 <li class=" navigation-header"><span>KHÁC</span>
                 </li>
-                <li class="<?= menu_active('settings') ?> nav-item"><a href="?act=settings"><i class="feather icon-settings"></i><span class="menu-title" data-i18n="Settings">Cấu hình</span></a>
+                <li class="<?= menu_active('pages') ?> nav-item"><a href="?act=pages"><i class="feather icon-users"></i><span class="menu-title" data-i18n="Pages">Cấu hình</span></a>
                 </li>
             </ul>
         </div>

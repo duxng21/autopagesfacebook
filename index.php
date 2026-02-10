@@ -19,11 +19,13 @@ require_once './commons/function.php';
 // Require Controllers
 require_once './controllers/ProductController.php';
 require_once './controllers/LoginController.php';
+require_once './controllers/PagesController.php';
 
 // Require Models
 require_once './models/BaseModel.php';
 require_once './models/ProductModel.php';
 require_once './models/AdminModel.php';
+require_once './models/FbPageModel.php';
 
 $act = $_GET['act'] ?? '/';
 
@@ -37,4 +39,9 @@ match ($act) {
     'login'   => (new LoginController())->login(),   // GET show + POST handle
     'logout'  => (new LoginController())->logout(),
     default   => (new ProductController())->Home(),
+    'pages'   => ($_SERVER['REQUEST_METHOD'] === 'POST')
+        ? (new PagesController())->store()
+        : (new PagesController())->index(),
+    'pages-delete' => (new PagesController())->delete(),
+
 };

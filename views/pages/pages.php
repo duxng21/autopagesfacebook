@@ -22,12 +22,9 @@
                                             <div class="row">
                                                 <div class="col-12">
                                                     <div class="form-group">
-                                                        <label for="first-name-vertical">ID Pages Developer Facebook:</label>
-                                                        <input type="text" id="first-name-vertical" class="form-control" name="page_id" placeholder="Nhập ID Pages 100xxx" value="<?= htmlspecialchars($setting['page_id'] ?? '') ?>">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="first-name-vertical">Token Developer Facebook:</label>
-                                                        <input type="text" id="first-name-vertical" class="form-control" name="fb_token" placeholder="Nhập token dạng EAAA..." value="<?= htmlspecialchars($setting['fb_token'] ?? '') ?>">
+                                                        <label>User Access Token:</label>
+                                                        <input type="text" class="form-control" name="user_token"
+                                                            placeholder="Nhập token dạng EAA..." value="">
                                                     </div>
                                                     <?php show_status(); ?>
                                                 </div>
@@ -43,6 +40,56 @@
                         </div>
                     </div>
                 </div>
+                <?php if (!empty($pages)): ?>
+                    <section id="data-list-view" class="data-list-view-header">
+                        <div class="action-btns d-none">
+                            <div class="btn-dropdown mr-1 mb-1">
+                                <!-- BUTTON -->
+                            </div>
+                        </div>
+
+                        <!-- DataTable starts -->
+                        <div class="table-responsive">
+                            <table class="table data-list-view">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>ID PAGES</th>
+                                        <th>NAME PAGES</th>
+                                        <th>AVATAR</th>
+                                        <th>ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($pages as $p): ?>
+                                        <tr>
+                                            <td></td>
+                                            <td class="product-name"><?= htmlspecialchars($p['page_id']) ?></td>
+                                            <td class="product-category"><?= htmlspecialchars($p['page_name']) ?></td>
+                                            <td><img src="<?= htmlspecialchars($p['page_avatar']) ?>" width="35" alt=""></td>
+                                            <?php
+                                                if (empty($_SESSION['csrf'])) {
+                                                    $_SESSION['csrf'] = bin2hex(random_bytes(16));
+                                                }
+                                            ?>
+                                            <td class="product-action">
+                                                <form method="POST" action="?act=pages-delete" style="display:inline;">
+                                                    <input type="hidden" name="page_id" value="<?= htmlspecialchars($p['page_id']) ?>">
+                                                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
+                                                    <button type="submit" onclick="return confirm('Xoá page này?');" class="btn btn-link p-0">
+                                                        <i class="feather icon-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+
+                                        </tr>
+                                    <?php endforeach ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- DataTable ends -->
+                    </section>
+                <?php endif; ?>
                 <div class="row match-height">
                     <div class="col-12">
                         <div class="card">

@@ -10,5 +10,5 @@ define('DB_PORT'    , 3306);
 define('DB_USERNAME', 'root');
 define('DB_PASSWORD', '');
 define('DB_NAME'    , 'code_2');  // Tên database
-
+define('FB_GRAPH_VERSION', 'v19.0');
 define('PATH_ROOT'    , __DIR__ . '/../');

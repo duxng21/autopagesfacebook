@@ -12,40 +12,19 @@ $(document).ready(function() {
   // init list view datatable
 var dataListView = $(".data-list-view").DataTable({
   responsive: false,
-
-  // ❌ bỏ checkbox / multi select nếu không dùng
   columnDefs: [],
-
-  // ❌ bỏ Actions dropdown, chỉ giữ nút + filter
-  dom: '<"top"<"action-btns"B><"action-filters"lf>>rt<"bottom"p>',
-
+  dom: '<"top"<"action-filters"lf>>rt<"bottom"p>',
   oLanguage: {
     sLengthMenu: "_MENU_",
     sSearch: ""
   },
-
   aLengthMenu: [
     [6, 10, 15, 20],
     [6, 10, 15, 20]
   ],
-
-  order: [[0, "asc"]], // sắp xếp theo cột đầu (nội dung)
+  order: [[0, "asc"]],
   bInfo: false,
-  pageLength: 6,
-
-  buttons: [
-    {
-      text: "<i class='feather icon-plus'></i> Thêm",
-      className: "btn-outline-primary",
-      action: function () {
-        window.location.href = "?act=post-create";
-      }
-    }
-  ],
-
-  initComplete: function () {
-    $(".dt-buttons .btn").removeClass("btn-secondary");
-  }
+  pageLength: 6
 });
 
 // giữ lại nếu bạn cần (Mac checkbox – hiện giờ không ảnh hưởng)
