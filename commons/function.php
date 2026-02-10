@@ -70,3 +70,103 @@ function show_status()
         }
     }
 }
+
+function fbApiPost(string $url, array $params, bool $isMultipart = false): array
+{
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+
+    if ($isMultipart) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+    } else {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+    }
+
+    $raw = curl_exec($ch);
+    $err = curl_error($ch);
+    curl_close($ch);
+
+    if ($err) {
+        return ['error' => ['message' => $err]];
+    }
+
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : ['error' => ['message' => 'Invalid JSON']];
+}
+
+function fbGraphVersion(): string
+{
+    return defined('FB_GRAPH_VERSION') ? FB_GRAPH_VERSION : 'v18.0';
+}
+
+function fbPostText(string $pageId, string $pageToken, string $message, ?int $scheduleTs = null): array
+{
+    $url = "https://graph.facebook.com/" . fbGraphVersion() . "/{$pageId}/feed";
+
+    $params = [
+        'message' => $message,
+        'access_token' => $pageToken,
+    ];
+
+    if ($scheduleTs) {
+        $params['published'] = 'false';
+        $params['scheduled_publish_time'] = $scheduleTs;
+    }
+
+    return fbApiPost($url, $params);
+}
+
+function fbUploadPhotoUnpublished(string $pageId, string $pageToken, string $absPath): array
+{
+    $url = "https://graph.facebook.com/" . fbGraphVersion() . "/{$pageId}/photos";
+
+    $params = [
+        'access_token' => $pageToken,
+        'published' => 'false',
+        'source' => new CURLFile($absPath),
+    ];
+
+    return fbApiPost($url, $params, true);
+}
+
+function fbPostImages(string $pageId, string $pageToken, string $message, array $photoIds, ?int $scheduleTs = null): array
+{
+    $url = "https://graph.facebook.com/" . fbGraphVersion() . "/{$pageId}/feed";
+
+    $attached = [];
+    foreach ($photoIds as $id) {
+        $attached[] = ['media_fbid' => $id];
+    }
+
+    $params = [
+        'message' => $message,
+        'attached_media' => json_encode($attached),
+        'access_token' => $pageToken,
+    ];
+
+    if ($scheduleTs) {
+        $params['published'] = 'false';
+        $params['scheduled_publish_time'] = $scheduleTs;
+    }
+
+    return fbApiPost($url, $params);
+}
+
+function fbPostVideo(string $pageId, string $pageToken, string $absPath, string $message = '', ?int $scheduleTs = null): array
+{
+    $url = "https://graph.facebook.com/" . fbGraphVersion() . "/{$pageId}/videos";
+
+    $params = [
+        'access_token' => $pageToken,
+        'description' => $message,
+        'source' => new CURLFile($absPath),
+    ];
+
+    if ($scheduleTs) {
+        $params['published'] = 'false';
+        $params['scheduled_publish_time'] = $scheduleTs;
+    }
+
+    return fbApiPost($url, $params, true);
+}

@@ -58,4 +58,15 @@ class FbPageModel extends BaseModel
         ]);
     }
 
+    public function getByPageIds(array $pageIds): array
+    {
+        if (empty($pageIds)) return [];
+
+        $placeholders = implode(',', array_fill(0, count($pageIds), '?'));
+        $sql = "SELECT * FROM fb_pages WHERE page_id IN ($placeholders)";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($pageIds);
+        return $stmt->fetchAll();
+    }
+
 }
