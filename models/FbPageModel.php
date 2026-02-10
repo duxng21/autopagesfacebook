@@ -42,4 +42,20 @@ class FbPageModel extends BaseModel
         return $stmt->execute([':page_id' => $pageId]);
     }
 
+    public function updatePageInfo(string $pageId, string $name, string $avatar, string $pageToken): bool
+    {
+        $sql = "UPDATE fb_pages
+                SET page_name = :page_name,
+                    page_avatar = :page_avatar,
+                    token_page = :token_page
+                WHERE page_id = :page_id";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([
+            ':page_id' => $pageId,
+            ':page_name' => $name,
+            ':page_avatar' => $avatar,
+            ':token_page' => $pageToken,
+        ]);
+    }
+
 }

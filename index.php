@@ -20,12 +20,14 @@ require_once './commons/function.php';
 require_once './controllers/ProductController.php';
 require_once './controllers/LoginController.php';
 require_once './controllers/PagesController.php';
+require_once './controllers/PostsController.php';
 
 // Require Models
 require_once './models/BaseModel.php';
 require_once './models/ProductModel.php';
 require_once './models/AdminModel.php';
 require_once './models/FbPageModel.php';
+require_once './models/PostModel.php';
 
 $act = $_GET['act'] ?? '/';
 
@@ -43,5 +45,6 @@ match ($act) {
         ? (new PagesController())->store()
         : (new PagesController())->index(),
     'pages-delete' => (new PagesController())->delete(),
-
+    'posts'   => (new PostsController())->index(),
+    'post-add'=> (new PostsController())->create(),
 };
