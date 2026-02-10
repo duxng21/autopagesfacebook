@@ -41,3 +41,9 @@ function deleteFile($file){
         unlink($pathDelete); // Hàm unlink dùng để xóa file
     }
 }
+
+function menu_active($act)
+{
+    $current = $_GET['act'] ?? '/';
+    return $current === $act ? 'active' : '';
+}

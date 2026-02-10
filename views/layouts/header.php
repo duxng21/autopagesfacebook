@@ -125,7 +125,7 @@
                             </ul>
                         </li>
                         <li class="dropdown dropdown-user nav-item"><a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
-                                <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600"><?= htmlspecialchars($_SESSION['user']['username']) ?></span><span class="user-status"><?= htmlspecialchars($_SESSION['user']['email']) ?></span></div><span><img class="round" src="<?= BASE_URL ?>/views/duxng_theme/app-assets/images/portrait/small/avatar-s-11.jpg" alt="avatar" height="40" width="40"></span>
+                                <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">Admin</span><span class="user-status">email</span></div><span><img class="round" src="<?= BASE_URL ?>/views/duxng_theme/app-assets/images/portrait/small/avatar-s-11.jpg" alt="avatar" height="40" width="40"></span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right"><a class="dropdown-item" href="page-user-profile.html"><i class="feather icon-user"></i> Thông tin cá nhân</a>
                                 <div class="dropdown-divider"></div><a class="dropdown-item" href="?act=logout"><i class="feather icon-power"></i> Đăng xuất</a>
