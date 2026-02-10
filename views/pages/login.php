@@ -68,6 +68,12 @@
                                         <div class="card-content">
                                             <div class="card-body pt-1">
                                                 <form method="POST">
+                                                    <?php
+                                                        if (empty($_SESSION['csrf'])) {
+                                                            $_SESSION['csrf'] = bin2hex(random_bytes(16));
+                                                        }
+                                                    ?>
+                                                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
                                                     <fieldset class="form-label-group form-group position-relative has-icon-left">
                                                         <input type="text" class="form-control" name="username" placeholder="Tài khoản" required>
                                                         <div class="form-control-position">
