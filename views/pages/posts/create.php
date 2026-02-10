@@ -53,6 +53,22 @@
                                                     </div>
                                                 </div>
 
+                                                <!-- Chọn pages (Select2 Multiple) -->
+                                                <div class="col-12">
+                                                    <div class="form-group">
+                                                        <label>Chọn Pages đăng bài</label>
+                                                        <select class="select2 form-control" name="page_ids[]" multiple="multiple">
+                                                            <?php foreach ($pages as $p): ?>
+                                                                <option value="<?= htmlspecialchars($p['page_id']) ?>">
+                                                                    <?= htmlspecialchars($p['page_name']) ?>
+                                                                </option>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+
+
                                                 <!-- Switch lên lịch -->
                                                 <div class="col-12">
                                                     <div class="form-group">
@@ -113,23 +129,23 @@
 </div>
 <!-- END: Content-->
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const switchEl = document.getElementById('scheduleSwitch');
-    const box = document.getElementById('scheduleBox');
+    document.addEventListener('DOMContentLoaded', function() {
+        const switchEl = document.getElementById('scheduleSwitch');
+        const box = document.getElementById('scheduleBox');
 
-    switchEl.addEventListener('change', function () {
-        box.style.display = this.checked ? 'block' : 'none';
-    });
+        switchEl.addEventListener('change', function() {
+            box.style.display = this.checked ? 'block' : 'none';
+        });
 
-    const fileInput = document.getElementById('mediaFile');
-    fileInput.addEventListener('change', function () {
-        if (this.files.length > 0) {
-            this.nextElementSibling.innerText =
-                this.files.length === 1
-                    ? this.files[0].name
-                    : this.files.length + ' files được chọn';
-        }
+        const fileInput = document.getElementById('mediaFile');
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                this.nextElementSibling.innerText =
+                    this.files.length === 1 ?
+                    this.files[0].name :
+                    this.files.length + ' files được chọn';
+            }
+        });
     });
-});
 </script>
 <?php require_once(PATH_ROOT . '/views/layouts/footer.php') ?>

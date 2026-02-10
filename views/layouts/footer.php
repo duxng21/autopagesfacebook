@@ -37,7 +37,18 @@
     <!-- BEGIN: Page JS-->
     <script src="<?= BASE_URL ?>/views/duxng_theme/app-assets/js/scripts/pages/dashboard-analytics.js"></script>
     <script src="<?= BASE_URL ?>/views/duxng_theme/app-assets/js/scripts/ui/data-list-view.js"></script>
+    <script src="<?= BASE_URL ?>/views/duxng_theme/app-assets/js/scripts/forms/select/form-select2.js"></script>
+    <script src="<?= BASE_URL ?>/views/duxng_theme/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
     <!-- END: Page JS-->
+     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.jQuery && $('.select2').length) {
+                $('.select2').select2({
+                    placeholder: 'Lựa chọn pages ở đây...'
+                });
+            }
+        });
+    </script>
 
 </body>
 <!-- END: Body-->

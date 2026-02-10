@@ -41,6 +41,7 @@
     <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>/views/duxng_theme/app-assets/css/plugins/tour/tour.css">
     <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>/views/duxng_theme/app-assets/css/plugins/file-uploaders/dropzone.css">
     <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>/views/duxng_theme/app-assets/css/pages/data-list-view.css">
+    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>/views/duxng_theme/app-assets/vendors/css/forms/select/select2.min.css">
     <!-- END: Page CSS-->
 
     <!-- BEGIN: Custom CSS-->
