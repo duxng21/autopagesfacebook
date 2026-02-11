@@ -21,6 +21,7 @@ require_once './controllers/ProductController.php';
 require_once './controllers/LoginController.php';
 require_once './controllers/PagesController.php';
 require_once './controllers/PostsController.php';
+require_once './controllers/MenusController.php';
 
 // Require Models
 require_once './models/BaseModel.php';
@@ -28,6 +29,7 @@ require_once './models/ProductModel.php';
 require_once './models/AdminModel.php';
 require_once './models/FbPageModel.php';
 require_once './models/PostModel.php';
+require_once './models/MenuModel.php';
 
 $act = $_GET['act'] ?? '/';
 
@@ -48,5 +50,9 @@ match ($act) {
     'post-add'=> (new PostsController())->create(),
     'post-delete' => (new PostsController())->delete(),
     'post-repost' => (new PostsController())->repost(),
+    'menus' => (new MenusController())->index(),
+    'menu-add' => (new MenusController())->create(),
+    'menu-edit' => (new MenusController())->edit(),
+    'menu-delete' => (new MenusController())->delete(),
     default   => (new ProductController())->Home(),
 };

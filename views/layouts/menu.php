@@ -16,9 +16,9 @@
                 </li>
                 <li class=" navigation-header"><span>TIỆN ÍCH</span>
                 </li>
-                <li class="<?= menu_active('posts') ?> nav-item"><a href="?act=posts"><i class="feather icon-list"></i><span class="menu-title" data-i18n="Post">Danh sách POST</span></a>
+                <li class="<?= menu_active('menus') ?> nav-item"><a href="?act=menus"><i class="feather icon-box"></i><span class="menu-title" data-i18n="Cloud">Danh mục</span></a>
                 </li>
-                <li class=" nav-item"><a href="#"><i class="feather icon-cloud"></i><span class="menu-title" data-i18n="Cloud">Lưu trữ</span></a>
+                <li class="<?= menu_active('posts') ?> nav-item"><a href="?act=posts"><i class="feather icon-list"></i><span class="menu-title" data-i18n="Post">Danh sách POST</span></a>
                 </li>
                 <li class=" navigation-header"><span>KHÁC</span>
                 </li>

@@ -64,7 +64,7 @@ $allPages = $pageModel->getAll();
                                             <?php else: ?>
                                                 <button class="btn bg-gradient-warning mr-1 mb-1 waves-effect waves-light btn-sm">Nháp</button>
                                             <?php endif; ?>
-
+                                            <button class="btn bg-gradient-warning mr-1 mb-1 waves-effect waves-light btn-sm">Bài số <?= $post['id']; ?></button>
                                             <?php if ($post['media_type'] === 'video'): ?>
                                                 <button class="btn bg-gradient-danger mr-1 mb-1 waves-effect waves-light btn-sm">Video</button>
                                             <?php elseif ($post['media_type'] === 'image'): ?>
