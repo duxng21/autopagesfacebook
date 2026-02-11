@@ -10,8 +10,8 @@ class PostModel extends BaseModel
     public function create(array $data): bool
     {
         $sql = "INSERT INTO posts
-                (page_id, fb_post_id, content, media_type, media_path, status, scheduled_at, posted_at)
-                VALUES (:page_id, :fb_post_id, :content, :media_type, :media_path, :status, :scheduled_at, :posted_at)";
+                (menu_id, page_id, fb_post_id, content, media_type, media_path, status, scheduled_at, posted_at)
+                VALUES (:menu_id, :page_id, :fb_post_id, :content, :media_type, :media_path, :status, :scheduled_at, :posted_at)";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute($data);
     }
@@ -32,21 +32,33 @@ class PostModel extends BaseModel
         return $stmt->execute([':id' => $id]);
     }
 
-    public function countAll(): int
+    public function countByMenus(array $menuIds = []): int
     {
-        $sql = "SELECT COUNT(*) AS total FROM posts";
+        if (empty($menuIds)) {
+            $sql = "SELECT COUNT(*) AS total FROM posts";
+            $row = $this->conn->query($sql)->fetch();
+            return (int)($row['total'] ?? 0);
+        }
+
+        $ids = implode(',', array_map('intval', $menuIds));
+        $sql = "SELECT COUNT(*) AS total FROM posts WHERE menu_id IN ($ids)";
         $row = $this->conn->query($sql)->fetch();
         return (int)($row['total'] ?? 0);
     }
 
-    public function getPage(int $limit, int $offset): array
+    public function getPageByMenus(int $limit, int $offset, array $menuIds = []): array
     {
-        $sql = "SELECT * FROM posts ORDER BY id DESC LIMIT :limit OFFSET :offset";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll();
+        $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
+
+        if (empty($menuIds)) {
+            $sql = "SELECT * FROM posts ORDER BY id DESC LIMIT $limit OFFSET $offset";
+            return $this->conn->query($sql)->fetchAll();
+        }
+
+        $ids = implode(',', array_map('intval', $menuIds));
+        $sql = "SELECT * FROM posts WHERE menu_id IN ($ids) ORDER BY id DESC LIMIT $limit OFFSET $offset";
+        return $this->conn->query($sql)->fetchAll();
     }
 
     public function markScheduledToPosted(): void
@@ -59,5 +71,4 @@ class PostModel extends BaseModel
                 AND scheduled_at <= CONVERT_TZ(NOW(), '+00:00', '+07:00')";
         $this->conn->exec($sql);
     }
-
 }

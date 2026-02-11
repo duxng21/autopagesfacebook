@@ -15,10 +15,31 @@ $allPages = $pageModel->getAll();
         <div class="content-header row">
         </div>
         <div class="content-body">
-            <section>
-                <a href="?act=post-add" class="btn btn-relief-primary mr-1 mb-1 waves-effect waves-light"><i class="feather icon-plus-square"></i> Thêm</a>
+            <section class="mb-1">
+                <div class="d-flex align-items-end justify-content-between flex-wrap">
+                    <a href="?act=post-add" class="btn btn-relief-primary mr-1 mb-1 waves-effect waves-light">
+                        <i class="feather icon-plus-square"></i> Thêm
+                    </a>
+
+                    <form method="GET" id="postFilterForm" class="d-flex align-items-end mb-1">
+                        <input type="hidden" name="act" value="posts">
+
+                        <div class="form-group mb-0 mr-1" style="min-width: 260px;">
+                            <label class="mb-25">Lọc danh mục</label>
+                            <select class="select2 form-control" id="menuFilterSelect" name="menu_ids[]" multiple="multiple">
+                                <?php foreach ($menus as $m): ?>
+                                    <option value="<?= (int)$m['id'] ?>"
+                                        <?= in_array((int)$m['id'], $selectedMenuIds ?? [], true) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($m['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </form>
+                </div>
                 <?php show_status(); ?>
             </section>
+
             <section id="basic-examples">
                 <div class="row match-height">
                     <?php foreach ($posts as $post): ?>
@@ -138,19 +159,26 @@ $allPages = $pageModel->getAll();
                 <?php if (!empty($totalPages) && $totalPages > 1): ?>
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center mt-2">
+                            <?php
+                            $baseQuery = ['act' => 'posts'];
+                            if (!empty($selectedMenuIds)) {
+                                $baseQuery['menu_ids'] = $selectedMenuIds;
+                            }
+                            ?>
                             <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="?act=posts&page=<?= max(1, $page - 1) ?>">«</a>
+                                <a class="page-link" href="?<?= http_build_query(array_merge($baseQuery, ['page' => max(1, $page - 1)])) ?>">«</a>
                             </li>
 
                             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                                 <li class="page-item <?= ($i === $page) ? 'active' : '' ?>">
-                                    <a class="page-link" href="?act=posts&page=<?= $i ?>"><?= $i ?></a>
+                                    <a class="page-link" href="?<?= http_build_query(array_merge($baseQuery, ['page' => $i])) ?>"><?= $i ?></a>
                                 </li>
                             <?php endfor; ?>
 
                             <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="?act=posts&page=<?= min($totalPages, $page + 1) ?>">»</a>
+                                <a class="page-link" href="?<?= http_build_query(array_merge($baseQuery, ['page' => min($totalPages, $page + 1)])) ?>">»</a>
                             </li>
+
                         </ul>
                     </nav>
                 <?php endif; ?>

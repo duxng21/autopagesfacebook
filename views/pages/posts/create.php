@@ -67,7 +67,17 @@
                                                     </div>
                                                 </div>
 
-
+                                                <div class="col-12">
+                                                    <div class="form-group">
+                                                        <label>Danh mục</label>
+                                                        <select class="select2 form-control" name="menu_id">
+                                                            <option value="">-- Chọn danh mục --</option>
+                                                            <?php foreach ($menus as $m): ?>
+                                                                <option value="<?= (int)$m['id'] ?>"><?= htmlspecialchars($m['name']) ?></option>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
 
                                                 <!-- Switch lên lịch -->
                                                 <div class="col-12">

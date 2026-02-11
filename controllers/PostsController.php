@@ -12,11 +12,20 @@ class PostsController
     {
         $perPage = 8;
         $page = max(1, (int)($_GET['page'] ?? 1));
-        $total = $this->postModel->countAll();
+
+        $selectedMenuIds = array_values(array_filter(array_map(
+            'intval',
+            (array)($_GET['menu_ids'] ?? [])
+        )));
+
+        $menuModel = new MenuModel();
+        $menus = $menuModel->getAll();
+
+        $total = $this->postModel->countByMenus($selectedMenuIds);
         $totalPages = (int)ceil($total / $perPage);
         $offset = ($page - 1) * $perPage;
 
-        $posts = $this->postModel->getPage($perPage, $offset);
+        $posts = $this->postModel->getPageByMenus($perPage, $offset, $selectedMenuIds);
 
         require_once './views/pages/posts/index.php';
     }
@@ -28,6 +37,7 @@ class PostsController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $pages = $pageModel->getAll();
+            $menus = (new MenuModel())->getAll();
             require_once './views/pages/posts/create.php';
             return;
         }
@@ -36,10 +46,12 @@ class PostsController
         $pageIds = $_POST['page_ids'] ?? [];
         $isScheduled = !empty($_POST['is_scheduled']);
         $scheduledAt = $isScheduled ? ($_POST['scheduled_at'] ?? null) : null;
+        $menuId = (int)($_POST['menu_id'] ?? 0);
 
         if ($content === '' && empty($_FILES['media']['name'][0])) {
             set_status('danger', 'Vui lòng nhập nội dung hoặc chọn media.');
             $pages = $pageModel->getAll();
+            $menus = (new MenuModel())->getAll();
             require_once './views/pages/posts/create.php';
             return;
         }
@@ -47,6 +59,7 @@ class PostsController
         if (empty($pageIds)) {
             set_status('danger', 'Vui lòng chọn ít nhất 1 page.');
             $pages = $pageModel->getAll();
+            $menus = (new MenuModel())->getAll();
             require_once './views/pages/posts/create.php';
             return;
         }
@@ -82,6 +95,7 @@ class PostsController
         if ($hasVideo && $hasImage) {
             set_status('danger', 'Không thể đăng ảnh và video cùng lúc.');
             $pages = $pageModel->getAll();
+            $menus = (new MenuModel())->getAll();
             require_once './views/pages/posts/create.php';
             return;
         }
@@ -89,6 +103,7 @@ class PostsController
         if ($hasVideo && count($mediaFiles) > 1) {
             set_status('danger', 'Chỉ hỗ trợ 1 video mỗi bài.');
             $pages = $pageModel->getAll();
+            $menus = (new MenuModel())->getAll();
             require_once './views/pages/posts/create.php';
             return;
         }
@@ -117,6 +132,7 @@ class PostsController
                     $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
                 } else {
                     $postModel->create([
+                        ':menu_id' => $menuId > 0 ? $menuId : null,
                         ':page_id' => $pageId,
                         ':fb_post_id' => $res['id'] ?? null,
                         ':content' => $content,
@@ -160,6 +176,7 @@ class PostsController
                         // lưu DB
                         $mediaPath = count($paths) > 1 ? json_encode($paths) : ($paths[0] ?? null);
                         $postModel->create([
+                            ':menu_id' => $menuId > 0 ? $menuId : null,
                             ':page_id' => $pageId,
                             ':fb_post_id' => $res['id'] ?? null,
                             ':content' => $content,
@@ -197,6 +214,7 @@ class PostsController
                     $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
                 } else {
                     $postModel->create([
+                        ':menu_id' => $menuId > 0 ? $menuId : null,
                         ':page_id' => $pageId,
                         ':fb_post_id' => $res['id'] ?? null,
                         ':content' => $content,
@@ -215,6 +233,7 @@ class PostsController
         if ($hasError) {
             set_status('danger', implode(' | ', $messages));
             $pages = $pageModel->getAll();
+            $menus = (new MenuModel())->getAll();
             require_once './views/pages/posts/create.php';
             return;
         }
@@ -352,6 +371,7 @@ class PostsController
                     $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
                 } else {
                     $this->postModel->create([
+                        ':menu_id' => $post['menu_id'] ?? null,
                         ':page_id' => $pageId,
                         ':fb_post_id' => $res['id'] ?? null,
                         ':content' => $content,
@@ -398,6 +418,7 @@ class PostsController
                     $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
                 } else {
                     $this->postModel->create([
+                        ':menu_id' => $post['menu_id'] ?? null,
                         ':page_id' => $pageId,
                         ':fb_post_id' => $res['id'] ?? null,
                         ':content' => $content,
@@ -427,6 +448,7 @@ class PostsController
                     $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
                 } else {
                     $this->postModel->create([
+                        ':menu_id' => $post['menu_id'] ?? null,
                         ':page_id' => $pageId,
                         ':fb_post_id' => $res['id'] ?? null,
                         ':content' => $content,
@@ -451,5 +473,4 @@ class PostsController
         header('Location: ?act=posts');
         exit;
     }
-
 }
