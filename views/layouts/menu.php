@@ -20,6 +20,8 @@
                 </li>
                 <li class="<?= menu_active('posts') ?> nav-item"><a href="?act=posts"><i class="feather icon-list"></i><span class="menu-title" data-i18n="Post">Danh sách POST</span></a>
                 </li>
+                <li class="<?= menu_active('posts-batch') ?> nav-item"><a href="?act=posts-batch"><i class="feather icon-layers"></i><span class="menu-title" data-i18n="Post">Đăng bài hàng loạt</span></a>
+                </li>
                 <li class=" navigation-header"><span>KHÁC</span>
                 </li>
                 <li class="<?= menu_active('pages') ?> nav-item"><a href="?act=pages"><i class="feather icon-users"></i><span class="menu-title" data-i18n="Pages">Cấu hình</span></a>
