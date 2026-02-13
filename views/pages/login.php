@@ -105,7 +105,7 @@
                                                             </script>';
                                                         }
                                                     ?>
-                                                    <button type="submit" class="btn bg-gradient-success mr-1 mb-1 waves-effect waves-light btn-block">Đăng nhập</button>
+                                                    <button type="submit" class="btn bg-gradient-primary mr-1 mb-1 waves-effect waves-light btn-block">Đăng nhập</button>
                                                 </form>
                                             </div>
                                         </div>

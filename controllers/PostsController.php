@@ -37,10 +37,26 @@ class PostsController
         $pageModel = new FbPageModel();
         $postModel = new PostModel();
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        $isAjax = strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest';
+
+        $renderCreate = function () use ($pageModel) {
             $pages = $pageModel->getAll();
             $menus = (new MenuModel())->getAll();
-            require_once './views/pages/posts/create.php';
+            require './views/pages/posts/create.php';
+        };
+
+        $ajaxJson = function (bool $ok, string $message, array $extra = []) use ($isAjax): bool {
+            if (!$isAjax) return false;
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(array_merge([
+                'ok' => $ok,
+                'message' => $message
+            ], $extra), JSON_UNESCAPED_UNICODE);
+            return true;
+        };
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $renderCreate();
             return;
         }
 
@@ -51,18 +67,16 @@ class PostsController
         $menuId = (int)($_POST['menu_id'] ?? 0);
 
         if ($content === '' && empty($_FILES['media']['name'][0])) {
+            if ($ajaxJson(false, 'Vui lòng nhập nội dung hoặc chọn media.')) return;
             set_status('danger', 'Vui lòng nhập nội dung hoặc chọn media.');
-            $pages = $pageModel->getAll();
-            $menus = (new MenuModel())->getAll();
-            require_once './views/pages/posts/create.php';
+            $renderCreate();
             return;
         }
 
         if (empty($pageIds)) {
+            if ($ajaxJson(false, 'Vui lòng chọn ít nhất 1 page.')) return;
             set_status('danger', 'Vui lòng chọn ít nhất 1 page.');
-            $pages = $pageModel->getAll();
-            $menus = (new MenuModel())->getAll();
-            require_once './views/pages/posts/create.php';
+            $renderCreate();
             return;
         }
 
@@ -72,7 +86,7 @@ class PostsController
             $scheduleTs = $dt->getTimestamp();
         }
 
-        // lấy file upload
+        // Lấy file upload
         $mediaFiles = [];
         if (!empty($_FILES['media']) && !empty($_FILES['media']['name'][0])) {
             for ($i = 0; $i < count($_FILES['media']['name']); $i++) {
@@ -95,18 +109,16 @@ class PostsController
         }
 
         if ($hasVideo && $hasImage) {
+            if ($ajaxJson(false, 'Không thể đăng ảnh và video cùng lúc.')) return;
             set_status('danger', 'Không thể đăng ảnh và video cùng lúc.');
-            $pages = $pageModel->getAll();
-            $menus = (new MenuModel())->getAll();
-            require_once './views/pages/posts/create.php';
+            $renderCreate();
             return;
         }
 
         if ($hasVideo && count($mediaFiles) > 1) {
+            if ($ajaxJson(false, 'Chỉ hỗ trợ 1 video mỗi bài.')) return;
             set_status('danger', 'Chỉ hỗ trợ 1 video mỗi bài.');
-            $pages = $pageModel->getAll();
-            $menus = (new MenuModel())->getAll();
-            require_once './views/pages/posts/create.php';
+            $renderCreate();
             return;
         }
 
@@ -125,7 +137,7 @@ class PostsController
                 continue;
             }
 
-            // CASE 1: Text only
+            // CASE 1: Chỉ có text
             if (!$hasImage && !$hasVideo) {
                 $res = $this->fbService->postText($pageId, $pageToken, $content, $scheduleTs);
 
@@ -175,8 +187,8 @@ class PostsController
                         $hasError = true;
                         $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
                     } else {
-                        // lưu DB
                         $mediaPath = count($paths) > 1 ? json_encode($paths) : ($paths[0] ?? null);
+
                         $postModel->create([
                             ':menu_id' => $menuId > 0 ? $menuId : null,
                             ':page_id' => $pageId,
@@ -232,18 +244,22 @@ class PostsController
             }
         }
 
+        $msg = implode(' | ', $messages);
+
         if ($hasError) {
-            set_status('danger', implode(' | ', $messages));
-            $pages = $pageModel->getAll();
-            $menus = (new MenuModel())->getAll();
-            require_once './views/pages/posts/create.php';
+            if ($ajaxJson(false, $msg !== '' ? $msg : 'Có lỗi xảy ra khi đăng bài.')) return;
+            set_status('danger', $msg !== '' ? $msg : 'Có lỗi xảy ra khi đăng bài.');
+            $renderCreate();
             return;
         }
 
-        set_status('success', implode(' | ', $messages));
+        if ($ajaxJson(true, $msg !== '' ? $msg : 'Đăng bài thành công.')) return;
+
+        set_status('success', $msg !== '' ? $msg : 'Đăng bài thành công.');
         header('Location: ?act=posts');
         exit;
     }
+
 
     public function delete()
     {
@@ -474,4 +490,142 @@ class PostsController
         header('Location: ?act=posts');
         exit;
     }
+
+    public function edit()
+    {
+        $menuModel = new MenuModel();
+        $pageModel = new FbPageModel();
+    
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $id = (int)($_GET['id'] ?? 0);
+            if ($id <= 0) {
+                set_status('danger', 'Thiếu ID bài viết.');
+                header('Location: ?act=posts');
+                exit;
+            }
+
+            $post = $this->postModel->getById($id);
+            if (!$post) {
+                set_status('danger', 'Không tìm thấy bài viết.');
+                header('Location: ?act=posts');
+                exit;
+            }
+
+            $menus = $menuModel->getAll();
+            require_once './views/pages/posts/edit.php';
+            return;
+        }
+
+        $csrf = $_POST['csrf'] ?? '';
+        if (empty($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], $csrf)) {
+            set_status('danger', 'Phiên làm việc không hợp lệ.');
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            set_status('danger', 'Thiếu ID bài viết.');
+            header('Location: ?act=posts');
+            exit;
+        }
+
+        $post = $this->postModel->getById($id);
+        if (!$post) {
+            set_status('danger', 'Không tìm thấy bài viết.');
+            header('Location: ?act=posts');
+            exit;
+        }
+        if (($post['status'] ?? '') === 'posted' && isset($_POST['is_scheduled'])) {
+            $_POST['is_scheduled'] = '';
+            $_POST['scheduled_at'] = null;
+        }
+
+        $content = trim($_POST['content'] ?? '');
+        $menuId = (int)($_POST['menu_id'] ?? 0);
+        $menuId = $menuId > 0 ? $menuId : null;
+
+        $isScheduled = !empty($_POST['is_scheduled']);
+        $scheduledAtRaw = trim($_POST['scheduled_at'] ?? '');
+
+        $oldContent = (string)($post['content'] ?? '');
+        $oldMenuId = isset($post['menu_id']) && $post['menu_id'] !== null ? (int)$post['menu_id'] : null;
+
+        $contentChanged = ($content !== $oldContent);
+        $menuChanged = ($menuId !== $oldMenuId);
+
+        $status = $post['status'];
+        $scheduledAt = $post['scheduled_at'];
+        $postedAt = $post['posted_at'];
+
+        $publishNow = ($post['status'] === 'scheduled' && !$isScheduled);
+
+        $scheduleChanged = false;
+        if ($post['status'] === 'scheduled' && $isScheduled && $scheduledAtRaw !== '') {
+            $dt = new DateTime($scheduledAtRaw, new DateTimeZone('Asia/Ho_Chi_Minh'));
+            $newScheduledAt = $dt->format('Y-m-d H:i:s');
+            if ($newScheduledAt !== (string)$post['scheduled_at']) {
+                $scheduleChanged = true;
+                $scheduledAt = $newScheduledAt;
+            }
+        }
+
+        if (!$contentChanged && !$menuChanged && !$publishNow && !$scheduleChanged) {
+            set_status('info', 'Không có thay đổi để cập nhật.');
+            header('Location: ?act=post-edit&id=' . $id);
+            exit;
+        }
+
+        if ($contentChanged || $publishNow) {
+            $page = $pageModel->getByPageId($post['page_id']);
+            if (!$page || empty($page['token_page'])) {
+                set_status('danger', 'Thiếu page token để cập nhật facebook');
+                header('Location: ?act=post-edit&id=' . $id);
+                exit;
+            }
+
+            $pageToken = $page['token_page'];
+
+            if ($contentChanged) {
+                $res = $this->fbService->updatePostMessage($post['fb_post_id'], $pageToken, $content);
+                if (!empty($res['error'])) {
+                    set_status('danger', $res['error']['message'] ?? 'Cập nhật nội dung trên facebook thất bại.');
+                    header('Location: ?act=post-edit&id=' . $id);
+                    exit;
+                }
+            }
+
+            if ($publishNow) {
+                $res = $this->fbService->publishPostNow($post['fb_post_id'], $pageToken);
+                if (!empty($res['error'])) {
+                    set_status('danger', $res['error']['message'] ?? 'Đăng ngày bài hẹn giờ thất bại.');
+                    header('Location: ?act=post-edit&id=' . $id);
+                    exit;
+                }
+
+                $status = 'posted';
+                $scheduledAt = null;
+                $postedAt = date('Y-m-d H:i:s');
+            }
+        }
+
+        $ok = $this->postModel->updateById($id, [
+            'menu_id' => $menuId,
+            'content' => $content,
+            'status' => $status,
+            'scheduled_at' => $scheduledAt,
+            'posted_at' => $postedAt,
+        ]);
+
+        if (!$ok) {
+            set_status('danger', 'Cập nhật bài viết thất bại.');
+            header('Location: ?act=post-edit&id=' . $id);
+            exit;
+        }
+
+        set_status('success', 'Đã cập nhật bài viết.');
+        header('Location: ?act=posts');
+        exit;
+    }
+
 }

@@ -19,10 +19,7 @@
 
                             <div class="card-content">
                                 <div class="card-body">
-                                    <form class="form form-vertical"
-                                        method="POST"
-                                        enctype="multipart/form-data">
-
+                                    <form id="postCreateForm" class="form form-vertical" method="POST" enctype="multipart/form-data">
                                         <div class="form-body">
                                             <div class="row">
 
@@ -108,6 +105,10 @@
 
                                                 <!-- Alert -->
                                                 <div class="col-12">
+                                                    <div id="postCreateProcessing" class="alert alert-info" style="display:none;">
+                                                        Đang xử lý, vui lòng chờ và không reload lại trang...
+                                                    </div>
+                                                    <div id="postCreateResult" style="display:none;"></div>
                                                     <?php show_status(); ?>
                                                 </div>
 
@@ -139,23 +140,81 @@
 </div>
 <!-- END: Content-->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const switchEl = document.getElementById('scheduleSwitch');
-        const box = document.getElementById('scheduleBox');
+document.addEventListener('DOMContentLoaded', function() {
+    const switchEl = document.getElementById('scheduleSwitch');
+    const box = document.getElementById('scheduleBox');
 
+    if (switchEl && box) {
         switchEl.addEventListener('change', function() {
             box.style.display = this.checked ? 'block' : 'none';
         });
+    }
 
-        const fileInput = document.getElementById('mediaFile');
+    const fileInput = document.getElementById('mediaFile');
+    if (fileInput) {
         fileInput.addEventListener('change', function() {
             if (this.files.length > 0) {
                 this.nextElementSibling.innerText =
-                    this.files.length === 1 ?
-                    this.files[0].name :
-                    this.files.length + ' files được chọn';
+                    this.files.length === 1
+                        ? this.files[0].name
+                        : this.files.length + ' files được chọn';
             }
         });
+    }
+
+    const form = document.getElementById('postCreateForm');
+    const processing = document.getElementById('postCreateProcessing');
+    const result = document.getElementById('postCreateResult');
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        if (processing) processing.style.display = 'block';
+        if (result) {
+            result.style.display = 'none';
+            result.className = '';
+            result.innerHTML = '';
+        }
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+            const formData = new FormData(form);
+            const res = await fetch('?act=post-add', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await res.json();
+
+            if (processing) processing.style.display = 'none';
+            if (submitBtn) submitBtn.disabled = false;
+
+            if (!result) return;
+            result.style.display = 'block';
+            result.className = 'alert ' + (data.ok ? 'alert-success' : 'alert-danger');
+            result.innerHTML = data.message || (data.ok ? 'Thành công' : 'Thất bại');
+
+            if (data.ok) {
+                form.reset();
+                if (box) box.style.display = 'none';
+            }
+        } catch (err) {
+            if (processing) processing.style.display = 'none';
+            if (submitBtn) submitBtn.disabled = false;
+
+            if (result) {
+                result.style.display = 'block';
+                result.className = 'alert alert-danger';
+                result.innerHTML = 'Có lỗi xảy ra, vui lòng thử lại.';
+            }
+        }
     });
+});
 </script>
 <?php require_once(PATH_ROOT . '/views/layouts/footer.php') ?>

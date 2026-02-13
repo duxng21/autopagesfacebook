@@ -184,4 +184,27 @@ class FacebookApiService
         $data = json_decode((string)$raw, true);
         return is_array($data) ? $data : ['error' => ['message' => 'Invalid JSON']];
     }
+
+    public function updatePostMessage(string $postId, string $pageToken, string $message): array
+    {
+        return $this->requestPost(
+            $this->graphUrl("/{$postId}"),
+            [
+                'message' => $message,
+                'access_token' => $pageToken,
+            ]
+        );
+    }
+
+    public function publishPostNow(string $postId, string $pageToken): array
+    {
+        return $this->requestPost(
+            $this->graphUrl("/{$postId}"),
+            [
+                'published' => 'true',
+                'is_published' => 'true',
+                'access_token' => $pageToken,
+            ]
+        );
+    }
 }

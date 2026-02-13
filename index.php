@@ -40,20 +40,21 @@ if (!isset($_SESSION['user']) && !in_array($act, ['login', 'logout'], true)) {
 }
 
 match ($act) {
-    '/'       => (new ProductController())->Home(),
-    'login'   => (new LoginController())->login(),   // GET show + POST handle
-    'logout'  => (new LoginController())->logout(),
-    'pages'   => ($_SERVER['REQUEST_METHOD'] === 'POST')
+    '/'                 => (new ProductController())->Home(),
+    'login'             => (new LoginController())->login(),   // GET show + POST handle
+    'logout'            => (new LoginController())->logout(),
+    'pages'             => ($_SERVER['REQUEST_METHOD'] === 'POST')
         ? (new PagesController())->store()
         : (new PagesController())->index(),
-    'pages-delete' => (new PagesController())->delete(),
-    'posts'   => (new PostsController())->index(),
-    'post-add'=> (new PostsController())->create(),
-    'post-delete' => (new PostsController())->delete(),
-    'post-repost' => (new PostsController())->repost(),
-    'menus' => (new MenusController())->index(),
-    'menu-add' => (new MenusController())->create(),
-    'menu-edit' => (new MenusController())->edit(),
-    'menu-delete' => (new MenusController())->delete(),
-    default   => (new ProductController())->Home(),
+    'pages-delete'      => (new PagesController())->delete(),
+    'posts'             => (new PostsController())->index(),
+    'post-add'          => (new PostsController())->create(),
+    'post-edit'         => (new PostsController())->edit(),
+    'post-delete'       => (new PostsController())->delete(),
+    'post-repost'       => (new PostsController())->repost(),
+    'menus'             => (new MenusController())->index(),
+    'menu-add'          => (new MenusController())->create(),
+    'menu-edit'         => (new MenusController())->edit(),
+    'menu-delete'       => (new MenusController())->delete(),
+    default             => (new ProductController())->Home(),
 };

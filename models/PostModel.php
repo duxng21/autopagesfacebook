@@ -71,4 +71,24 @@ class PostModel extends BaseModel
                 AND scheduled_at <= CONVERT_TZ(NOW(), '+00:00', '+07:00')";
         $this->conn->exec($sql);
     }
+
+    public function updateById(int $id, array $data): bool
+    {
+        $sql = "UPDATE posts
+                SET menu_id = :menu_id,
+                    content = :content,
+                    status = :status,
+                    scheduled_at = :scheduled_at,
+                    posted_at = :posted_at
+                WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([
+            ':id' => $id,
+            ':menu_id' => $data['menu_id'],
+            ':content' => $data['content'],
+            ':status' => $data['status'],
+            ':scheduled_at' => $data['scheduled_at'],
+            ':posted_at' => $data['posted_at'],
+        ]);
+    }
 }
