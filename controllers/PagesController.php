@@ -2,10 +2,12 @@
 class PagesController
 {
     public $pageModel;
+    public $fbService;
 
     public function __construct()
     {
         $this->pageModel = new FbPageModel();
+        $this->fbService = new FacebookApiService();
     }
 
     public function index()
@@ -46,23 +48,7 @@ class PagesController
 
     private function fetchUserPages(string $userToken): array
     {
-        $version = defined('FB_GRAPH_VERSION') ? FB_GRAPH_VERSION : 'v19.0';
-        $url = "https://graph.facebook.com/{$version}/me/accounts"
-             . "?fields=id,name,access_token"
-             . "&access_token=" . urlencode($userToken);
-
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT => 20,
-        ]);
-        $raw = curl_exec($ch);
-        curl_close($ch);
-
-        $data = json_decode($raw, true);
-        return is_array($data) ? $data : ['error' => ['message' => 'Không đọc được phản hồi từ Facebook.']];
+        return $this->fbService->getUserPages($userToken);
     }
 
     public function delete()

@@ -22,6 +22,7 @@ require_once './controllers/LoginController.php';
 require_once './controllers/PagesController.php';
 require_once './controllers/PostsController.php';
 require_once './controllers/MenusController.php';
+require_once './services/FacebookApiService.php';
 
 // Require Models
 require_once './models/BaseModel.php';

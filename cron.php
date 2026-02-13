@@ -4,11 +4,13 @@ require_once './commons/function.php';
 require_once './models/BaseModel.php';
 require_once './models/FbPageModel.php';
 require_once './models/PostModel.php';
+require_once './services/FacebookApiService.php';
 
 // ===== Cron: cập nhật token page =====
 $model = new FbPageModel();
 $pages = $model->getAll();
 $results = [];
+$fbService = new FacebookApiService();
 
 foreach ($pages as $p) {
     $pageId = $p['page_id'];
@@ -19,22 +21,7 @@ foreach ($pages as $p) {
         continue;
     }
 
-    $version = defined('FB_GRAPH_VERSION') ? FB_GRAPH_VERSION : 'v19.0';
-    $url = "https://graph.facebook.com/{$version}/{$pageId}"
-         . "?fields=name,access_token,picture.type(square)"
-         . "&access_token=" . urlencode($userToken);
-
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 10,
-        CURLOPT_TIMEOUT => 20,
-    ]);
-    $raw = curl_exec($ch);
-    curl_close($ch);
-
-    $data = json_decode($raw, true);
+    $data = $fbService->getPageInfo($pageId, $userToken);
 
     if (!empty($data['error'])) {
         $results[] = [

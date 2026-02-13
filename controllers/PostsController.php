@@ -2,10 +2,12 @@
 class PostsController
 {
     public $postModel;
+    public $fbService;
 
     public function __construct()
     {
         $this->postModel = new PostModel();
+        $this->fbService = new FacebookApiService();
     }
 
     public function index()
@@ -125,7 +127,7 @@ class PostsController
 
             // CASE 1: Text only
             if (!$hasImage && !$hasVideo) {
-                $res = fbPostText($pageId, $pageToken, $content, $scheduleTs);
+                $res = $this->fbService->postText($pageId, $pageToken, $content, $scheduleTs);
 
                 if (!empty($res['error'])) {
                     $hasError = true;
@@ -160,14 +162,14 @@ class PostsController
                     $paths[] = $path;
                     $abs = PATH_ROOT . $path;
 
-                    $up = fbUploadPhotoUnpublished($pageId, $pageToken, $abs);
+                    $up = $this->fbService->uploadPhotoUnpublished($pageId, $pageToken, $abs);
                     if (!empty($up['id'])) {
                         $photoIds[] = $up['id'];
                     }
                 }
 
                 if (!empty($photoIds)) {
-                    $res = fbPostImages($pageId, $pageToken, $content, $photoIds, $scheduleTs);
+                    $res = $this->fbService->postImages($pageId, $pageToken, $content, $photoIds, $scheduleTs);
 
                     if (!empty($res['error'])) {
                         $hasError = true;
@@ -207,7 +209,7 @@ class PostsController
                 }
 
                 $abs = PATH_ROOT . $path;
-                $res = fbPostVideo($pageId, $pageToken, $abs, $content, $scheduleTs);
+                $res = $this->fbService->postVideo($pageId, $pageToken, $abs, $content, $scheduleTs);
 
                 if (!empty($res['error'])) {
                     $hasError = true;
@@ -280,7 +282,7 @@ class PostsController
             exit;
         }
 
-        $res = fbDeletePost($post['fb_post_id'], $page['token_page']);
+        $res = $this->fbService->deletePost($post['fb_post_id'], $page['token_page']);
 
         if (!empty($res['error'])) {
             set_status('danger', $res['error']['message'] ?? 'Xoá thất bại.');
@@ -303,7 +305,6 @@ class PostsController
                 deleteFile($mediaPath);
             }
         }
-
 
         // Tuỳ chọn: xoá DB sau khi xoá FB
         $this->postModel->deleteById($id);
@@ -365,7 +366,7 @@ class PostsController
 
             // Text only
             if ($mediaType === 'none' || empty($mediaPath)) {
-                $res = fbPostText($pageId, $pageToken, $content, null);
+                $res = $this->fbService->postText($pageId, $pageToken, $content, null);
                 if (!empty($res['error'])) {
                     $hasError = true;
                     $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
@@ -402,7 +403,7 @@ class PostsController
                         $messages[] = "{$pageId}: thiếu file ảnh";
                         continue 2;
                     }
-                    $up = fbUploadPhotoUnpublished($pageId, $pageToken, $abs);
+                    $up = $this->fbService->uploadPhotoUnpublished($pageId, $pageToken, $abs);
                     if (!empty($up['id'])) $photoIds[] = $up['id'];
                 }
 
@@ -412,7 +413,7 @@ class PostsController
                     continue;
                 }
 
-                $res = fbPostImages($pageId, $pageToken, $content, $photoIds, null);
+                $res = $this->fbService->postImages($pageId, $pageToken, $content, $photoIds, null);
                 if (!empty($res['error'])) {
                     $hasError = true;
                     $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
@@ -442,7 +443,7 @@ class PostsController
                     continue;
                 }
 
-                $res = fbPostVideo($pageId, $pageToken, $abs, $content, null);
+                $res = $this->fbService->postVideo($pageId, $pageToken, $abs, $content, null);
                 if (!empty($res['error'])) {
                     $hasError = true;
                     $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
