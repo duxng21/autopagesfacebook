@@ -1,11 +1,15 @@
-<?php require_once(PATH_ROOT . '/views/layouts/header.php') ?>
-<?php require_once(PATH_ROOT . '/views/layouts/menu.php') ?>
-<?php
+<?php 
+require_once(PATH_ROOT . '/views/layouts/header.php');
+require_once(PATH_ROOT . '/views/layouts/menu.php');
 if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(16));
 }
 $pageModel = new FbPageModel();
 $allPages = $pageModel->getAll();
+$menuNameById = [];
+foreach (($menus ?? []) as $m) {
+    $menuNameById[(int)$m['id']] = $m['name'];
+}
 ?>
 <!-- BEGIN: Content-->
 <div class="app-content content">
@@ -44,7 +48,11 @@ $allPages = $pageModel->getAll();
                 <div class="row match-height">
                     <?php foreach ($posts as $post): ?>
                         <div class="col-xl-3 col-md-6 col-sm-12">
-                            <div class="card">
+                            <div class="card post-card-wrap">
+                                <span class="post-id-badge">#<?= (int)$post['id'] ?></span>
+                                <a href="?act=post-edit&id=<?= (int)$post['id'] ?>" class="post-edit-btn" title="Sửa bài">
+                                    <i class="feather icon-edit"></i>
+                                </a>
                                 <div class="card-content">
                                     <div class="card-body">
                                         <?php
@@ -85,7 +93,10 @@ $allPages = $pageModel->getAll();
                                             <?php else: ?>
                                                 <button class="btn bg-gradient-warning mr-1 mb-1 waves-effect waves-light btn-sm">Nháp</button>
                                             <?php endif; ?>
-                                            <button class="btn bg-gradient-warning mr-1 mb-1 waves-effect waves-light btn-sm">Bài số <?= $post['id']; ?></button>
+                                            <?php $menuLabel = $menuNameById[(int)($post['menu_id'] ?? 0)] ?? 'Chưa phân loại'; ?>
+                                                <button class="btn bg-gradient-warning mr-1 mb-1 waves-effect waves-light btn-sm">
+                                                    <?= htmlspecialchars($menuLabel) ?>
+                                                </button>
                                             <?php if ($post['media_type'] === 'video'): ?>
                                                 <button class="btn bg-gradient-danger mr-1 mb-1 waves-effect waves-light btn-sm">Video</button>
                                             <?php elseif ($post['media_type'] === 'image'): ?>

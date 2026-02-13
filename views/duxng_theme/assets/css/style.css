@@ -17,3 +17,41 @@ WE WILL RELEASE FUTURE UPDATES SO IN ORDER TO NOT OVERWRITE YOUR STYLES IT'S BET
   display: block;
   background: #f5f5f5;
 }
+.post-card-wrap {
+    position: relative;
+}
+.post-edit-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 0;
+    background: #f3f3f8;
+    color: #5e50ee;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+
+.post-edit-btn:hover {
+    background: #ebeafc;
+    color: #4c3fe0;
+    text-decoration: none;
+}
+
+.post-id-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(0, 0, 0, .65);
+    color: #fff;
+}
