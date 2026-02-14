@@ -31,6 +31,7 @@ require_once './models/AdminModel.php';
 require_once './models/FbPageModel.php';
 require_once './models/PostModel.php';
 require_once './models/MenuModel.php';
+require_once './models/PostQueueModel.php';
 
 $act = $_GET['act'] ?? '/';
 
@@ -56,5 +57,6 @@ match ($act) {
     'menu-add'          => (new MenusController())->create(),
     'menu-edit'         => (new MenusController())->edit(),
     'menu-delete'       => (new MenusController())->delete(),
+    'posts-batch' => (new PostsController())->batch(),
     default             => (new ProductController())->Home(),
 };

@@ -628,4 +628,122 @@ class PostsController
         exit;
     }
 
+    public function batch()
+    {
+        $pageModel = new FbPageModel();
+        $queueModel = new PostQueueModel();
+        $postModel = new PostModel();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $pages = $pageModel->getAll();
+            $batchList = $queueModel->getBatchSummaries(30);
+
+            $viewBatchId = trim($_GET['view_batch_id'] ?? '');
+            $batchItems = [];
+            if ($viewBatchId !== '') {
+                $batchItems = $queueModel->getItemsByBatchId($viewBatchId);
+            }
+
+            require_once './views/pages/posts/batch.php';
+            return;
+        }
+
+        $pageIds = (array)($_POST['page_ids'] ?? []);
+        $fromNo = (int)($_POST['from_no'] ?? 0);
+        $toNo = (int)($_POST['to_no'] ?? 0);
+        $startDate = trim($_POST['start_date'] ?? '');
+        $timeSlotsRaw = trim($_POST['time_slots'] ?? '');
+
+        $pageIds = array_values(array_filter(array_map('trim', $pageIds)));
+
+        if (empty($pageIds) || $fromNo <= 0 || $toNo < $fromNo || $startDate === '' || $timeSlotsRaw === '') {
+            set_status('danger', 'Vui lòng nhập đầy đủ thông tin hợp lệ.');
+            header('Location: ?act=posts-batch');
+            exit;
+        }
+
+        $sourcePosts = $postModel->getByIdRange($fromNo, $toNo);
+        if (empty($sourcePosts)) {
+            set_status('danger', 'Không tìm thấy bài nguồn trong dải id đã chọn.');
+            header('Location: ?act=posts-batch');
+            exit;
+        }
+
+        $slots = array_values(array_filter(array_map('trim', explode(',', $timeSlotsRaw))));
+        if (empty($slots)) {
+            set_status('danger', 'Khung giờ không hợp lệ.');
+            header('Location: ?act=posts-batch');
+            exit;
+        }
+
+        $normalizedSlots = [];
+        foreach ($slots as $slot) {
+            if (preg_match('/^\d{1,2}$/', $slot)) {
+                $slot = str_pad($slot, 2, '0', STR_PAD_LEFT) . ':00';
+            } elseif (preg_match('/^\d{1,2}:\d{2}$/', $slot)) {
+                [$h, $m] = explode(':', $slot);
+                $slot = str_pad($h, 2, '0', STR_PAD_LEFT) . ':' . $m;
+            }
+
+            if (!preg_match('/^\d{2}:\d{2}$/', $slot)) {
+                set_status('danger', "Khung giờ không hợp lệ: {$slot}");
+                header('Location: ?act=posts-batch');
+                exit;
+            }
+            $normalizedSlots[] = $slot;
+        }
+
+        $baseDate = DateTime::createFromFormat('Y-m-d', $startDate, new DateTimeZone('Asia/Ho_Chi_Minh'));
+        if (!$baseDate) {
+            set_status('danger', 'Ngày bắt đầu không hợp lệ.');
+            header('Location: ?act=posts-batch');
+            exit;
+        }
+
+        $batchId = 'B' . date('Ymd_His') . '_' . substr(bin2hex(random_bytes(3)), 0, 6);
+
+        $rows = [];
+        $slotPerDay = count($normalizedSlots);
+
+        foreach ($pageIds as $targetPageId) {
+            $i = 0;
+            foreach ($sourcePosts as $sp) {
+                $dayOffset = intdiv($i, $slotPerDay);
+                $slotIdx = $i % $slotPerDay;
+                [$h, $m] = explode(':', $normalizedSlots[$slotIdx]);
+
+                $dt = clone $baseDate;
+                if ($dayOffset > 0) {
+                    $dt->modify("+{$dayOffset} day");
+                }
+                $dt->setTime((int)$h, (int)$m, 0);
+
+                $rows[] = [
+                    ':batch_id' => $batchId,
+                    ':source_no' => (int)$sp['id'],
+                    ':page_id' => $targetPageId,
+                    ':menu_id' => $sp['menu_id'] ?? null,
+                    ':content' => $sp['content'] ?? null,
+                    ':media_type' => $sp['media_type'] ?? 'none',
+                    ':media_path' => $sp['media_path'] ?? null,
+                    ':scheduled_at' => $dt->format('Y-m-d H:i:s'),
+                    ':status' => 'queued',
+                ];
+                $i++;
+            }
+        }
+
+        try {
+            $created = $queueModel->insertMany($rows);
+        } catch (Throwable $e) {
+            set_status('danger', 'Lỗi khi tạo lịch hàng loạt: ' . $e->getMessage());
+            header('Location: ?act=posts-batch');
+            exit;
+        }
+
+        set_status('success', "Đã tạo batch {$batchId} với {$created} lịch.");
+        header('Location: ?act=posts-batch&view_batch_id=' . urlencode($batchId));
+        exit;
+    }
+
 }

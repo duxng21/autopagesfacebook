@@ -65,10 +65,10 @@ class PostModel extends BaseModel
     {
         $sql = "UPDATE posts
                 SET status = 'posted',
-                    posted_at = CONVERT_TZ(NOW(), '+00:00', '+07:00')
+                    posted_at = NOW()
                 WHERE status = 'scheduled'
                 AND scheduled_at IS NOT NULL
-                AND scheduled_at <= CONVERT_TZ(NOW(), '+00:00', '+07:00')";
+                AND scheduled_at <= NOW()";
         $this->conn->exec($sql);
     }
 
@@ -91,4 +91,19 @@ class PostModel extends BaseModel
             ':posted_at' => $data['posted_at'],
         ]);
     }
+
+    public function getByIdRange(int $fromId, int $toId): array
+    {
+        $sql = "SELECT *
+                FROM posts
+                WHERE id BETWEEN :from_id AND :to_id
+                ORDER BY id ASC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            ':from_id' => $fromId,
+            ':to_id' => $toId,
+        ]);
+        return $stmt->fetchAll();
+    }
+
 }
