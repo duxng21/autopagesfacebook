@@ -1,77 +1,34 @@
 <?php
-require_once './commons/env.php';
-require_once './commons/function.php';
+require_once __DIR__ . '/../commons/env.php';
+require_once __DIR__ . '/../commons/function.php';
 initDatabaseSchemaIfNeeded();
-require_once './models/BaseModel.php';
-require_once './models/FbPageModel.php';
-require_once './models/PostModel.php';
-require_once './models/PostQueueModel.php';
-require_once './services/FacebookApiService.php';
 
-// ===== Init =====
+require_once __DIR__ . '/../models/BaseModel.php';
+require_once __DIR__ . '/../models/FbPageModel.php';
+require_once __DIR__ . '/../models/PostModel.php';
+require_once __DIR__ . '/../models/PostQueueModel.php';
+require_once __DIR__ . '/../services/FacebookApiService.php';
+
 $fbService = new FacebookApiService();
 $pageModel = new FbPageModel();
 $postModel = new PostModel();
 $queueModel = new PostQueueModel();
 
 $results = [
-    'page_token_refresh' => [],
-    'queue' => [
-        'processed' => 0,
-        'posted' => 0,
-        'failed' => 0,
-        'items' => [],
-    ],
+    'processed' => 0,
+    'posted' => 0,
+    'failed' => 0,
+    'items' => [],
 ];
 
-// ===== Cron 1: Cập nhật token page =====
-$pages = $pageModel->getAll();
-
-foreach ($pages as $p) {
-    $pageId = $p['page_id'];
-    $userToken = $p['access_token'];
-
-    if (!$pageId || !$userToken) {
-        $results['page_token_refresh'][] = [
-            'page_id' => $pageId,
-            'status' => 'skip',
-            'message' => 'missing token',
-        ];
-        continue;
-    }
-
-    $data = $fbService->getPageInfo($pageId, $userToken);
-
-    if (!empty($data['error'])) {
-        $results['page_token_refresh'][] = [
-            'page_id' => $pageId,
-            'status' => 'error',
-            'message' => $data['error']['message'] ?? 'unknown',
-        ];
-        continue;
-    }
-
-    $name = $data['name'] ?? '';
-    $pageToken = $data['access_token'] ?? '';
-    $avatar = $data['picture']['data']['url'] ?? ("https://graph.facebook.com/{$pageId}/picture?type=square");
-
-    $ok = $pageModel->updatePageInfo($pageId, $name, $avatar, $pageToken);
-    $results['page_token_refresh'][] = [
-        'page_id' => $pageId,
-        'status' => $ok ? 'updated' : 'failed',
-    ];
-}
-
-// ===== Cron 2: Queue worker (đăng bài hàng loạt) =====
 $jobs = $queueModel->getDueQueued(8);
 
 foreach ($jobs as $job) {
     $jobId = (int)$job['id'];
-    $results['queue']['processed']++;
+    $results['processed']++;
 
-    // Tránh xử lý trùng nếu có nhiều cron chạy cùng lúc
     if (!$queueModel->markProcessing($jobId)) {
-        $results['queue']['items'][] = [
+        $results['items'][] = [
             'id' => $jobId,
             'status' => 'skip',
             'message' => 'already claimed',
@@ -84,8 +41,8 @@ foreach ($jobs as $job) {
 
     if (!$page || empty($page['token_page'])) {
         $queueModel->markFailed($jobId, 'Missing page token');
-        $results['queue']['failed']++;
-        $results['queue']['items'][] = [
+        $results['failed']++;
+        $results['items'][] = [
             'id' => $jobId,
             'status' => 'failed',
             'message' => 'Missing page token',
@@ -117,11 +74,13 @@ foreach ($jobs as $job) {
                 $error = "Image file not found: {$mp}";
                 break;
             }
+
             $up = $fbService->uploadPhotoUnpublished($pageId, $pageToken, $abs);
             if (!empty($up['error'])) {
                 $error = $up['error']['message'] ?? 'Upload photo failed';
                 break;
             }
+
             if (!empty($up['id'])) {
                 $photoIds[] = $up['id'];
             }
@@ -151,8 +110,8 @@ foreach ($jobs as $job) {
 
     if ($error) {
         $queueModel->markFailed($jobId, $error);
-        $results['queue']['failed']++;
-        $results['queue']['items'][] = [
+        $results['failed']++;
+        $results['items'][] = [
             'id' => $jobId,
             'status' => 'failed',
             'message' => $error,
@@ -163,7 +122,6 @@ foreach ($jobs as $job) {
     $fbPostId = $res['id'] ?? null;
     $queueModel->markPosted($jobId, $fbPostId);
 
-    // Đồng bộ sang bảng posts để UI hiện lịch sử bài đã đăng
     $postModel->create([
         ':menu_id' => !empty($job['menu_id']) ? (int)$job['menu_id'] : null,
         ':page_id' => $pageId,
@@ -176,17 +134,17 @@ foreach ($jobs as $job) {
         ':posted_at' => date('Y-m-d H:i:s'),
     ]);
 
-    $results['queue']['posted']++;
-    $results['queue']['items'][] = [
+    $results['posted']++;
+    $results['items'][] = [
         'id' => $jobId,
         'status' => 'posted',
         'fb_post_id' => $fbPostId,
     ];
 }
 
-// ===== Cron 3: Giữ logic cũ scheduled -> posted =====
-$postModel->markScheduledToPosted();
-
-// ===== Output =====
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode(['ok' => true, 'results' => $results], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+echo json_encode([
+    'ok' => true,
+    'cron' => 'queue',
+    'results' => $results,
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
