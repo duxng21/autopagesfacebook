@@ -57,6 +57,6 @@ match ($act) {
     'menu-add'          => (new MenusController())->create(),
     'menu-edit'         => (new MenusController())->edit(),
     'menu-delete'       => (new MenusController())->delete(),
-    'posts-batch' => (new PostsController())->batch(),
+    'posts-batch'       => (new PostsController())->batch(),
     default             => (new ProductController())->Home(),
 };

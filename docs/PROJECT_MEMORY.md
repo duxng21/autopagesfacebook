@@ -176,3 +176,64 @@
 3. Bo sung log chi tiet (thanh cong/that bai) cho post/repost/delete.
 4. Chuan hoa UTF-8 cho toan bo file view.
 5. Them xac nhan xoa 2 buoc cho danh muc/theo yeu cau nghiep vu.
+
+## 11) Session Update 2026-02-14 (Moi nhat)
+- Tai lieu memory da chuyen vao `docs/PROJECT_MEMORY.md` (duong dan cu khong con dung).
+
+### Kien truc/Service
+- Facebook API da tach ra service rieng: `services/FacebookApiService.php`.
+- `PostsController` va `PagesController` goi truc tiep service, khong di qua helper Facebook trong `commons/function.php`.
+- `commons/function.php` hien tai chi giu helper chung (DB/upload/delete/flash/menu_active).
+
+### Route map bo sung
+- `?act=post-edit` -> `PostsController::edit()` (GET/POST).
+- `?act=posts-batch` -> `PostsController::batch()` (GET/POST).
+
+### Chuc nang Posts bo sung
+- Edit post:
+- Prefill du lieu theo `id`.
+- Cho phep cap nhat noi dung (`message`) len Facebook.
+- Cap nhat `menu_id` trong DB.
+- Neu bai dang `scheduled` va tat lich, se publish ngay (neu API tra ve OK) va cap nhat status local.
+- Neu bai da `posted`, switch len lich bi khoa tren UI de tranh hieu nham.
+- Post add:
+- Ho tro submit AJAX, hien alert dang xu ly va tra ket qua JSON (khong reload trang).
+
+### Dang bai hang loat (Batch)
+- Form batch: chon nhieu `page_ids[]`, chon dai id bai nguon (`from_no` -> `to_no`), ngay bat dau, cac khung gio.
+- Du lieu content/media/menu duoc copy tu bang `posts` theo dai id da chon.
+- Tao queue vao bang `post_queue`.
+- Da co `batch_id` de gom 1 lan len lich thanh 1 dot theo doi.
+- Man hinh batch co:
+- Bang tong hop cac batch gan day.
+- Nut `Xem` de hien chi tiet tung item theo `batch_id`.
+
+### DB schema bo sung
+- Them bang `post_queue`:
+- `batch_id`, `source_no`, `page_id`, `menu_id`, `content`, `media_type`, `media_path`,
+- `scheduled_at`, `status (queued|processing|posted|failed|cancelled)`,
+- `fb_post_id`, `retry_count`, `last_error`, `last_attempt_at`, timestamps.
+- Chi muc khuyen nghi:
+- `idx_queue_status_time(status, scheduled_at)`
+- `idx_queue_page(page_id)`
+- `idx_batch_id(batch_id)`
+- Luu y: `media_path` cua `post_queue` nen de `TEXT` neu co kha nang luu JSON nhieu anh.
+
+### Cron (hien tai gop 1 file `cron.php`)
+- Cron 1: refresh token page (`fb_pages`).
+- Cron 2: worker xu ly `post_queue`:
+- Lay job den han `queued`.
+- Chuyen `processing` de tranh trung lap.
+- Dang len Facebook theo media type.
+- Ket qua: `posted`/`failed`, luu `fb_post_id` va `last_error`.
+- Dong bo row thanh cong vao bang `posts`.
+- Cron 3: giu logic cu `posts.scheduled -> posted`.
+- Gioi han xu ly queue moi lan cron: `8` job/run de tranh burst.
+
+### Thong ke Home
+- Home (`?act=/`) da co luong loc theo `page_id`:
+- Khong loc: thong ke tong toan bo.
+- Co loc: thong ke rieng theo page.
+- Khu vuc thong ke "Dang hang loat" da bo sung so lieu theo `post_queue`:
+- tong, queued/processing, posted, failed.
+- Cac block chi tiet phu co the an/hien theo trang thai dang loc (theo UI comment trong view).

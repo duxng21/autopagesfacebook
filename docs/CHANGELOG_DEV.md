@@ -66,3 +66,38 @@
 
 ### Notes
 - Khi bat dau phien moi: doc `PROJECT_MEMORY.md` va `docs/CHANGELOG_DEV.md` truoc.
+
+## 2026-02-14 (Session Update)
+### Added
+- Tach Facebook API thanh service rieng: `services/FacebookApiService.php`.
+- Bo sung route va flow sua bai:
+- `post-edit` (GET/POST), prefill theo id.
+- Cap nhat noi dung bai len Facebook + cap nhat `menu_id` local.
+- Publish ngay bai dang `scheduled` khi tat lich (neu API cho phep).
+- Bo sung submit AJAX cho `post-add` (hien alert dang xu ly, tra JSON ket qua).
+- Bo sung module dang bai hang loat:
+- Route `posts-batch`.
+- Form chon nhieu pages + dai id bai nguon + ngay bat dau + khung gio.
+- Bang queue moi `post_queue` de luu ke hoach dang hang loat.
+- Bo sung `batch_id` de theo doi theo tung dot len lich.
+- UI batch co danh sach batch + chi tiet theo `view_batch_id`.
+
+### Changed
+- `PostsController` goi truc tiep `FacebookApiService`, khong dung helper Facebook trong `commons/function.php`.
+- `cron.php` gop 3 luong:
+- Refresh page token.
+- Worker xu ly `post_queue` (queued -> processing -> posted/failed).
+- Dong bo bai thanh cong sang bang `posts`.
+- Xu ly scheduled cu (`posts`).
+- Gioi han xu ly queue moi lan cron: 8 jobs/run.
+- Home dashboard (`?act=/`) bo sung thong ke cho queue batch:
+- Tong job, queued/processing, posted, failed.
+- Khong loc thi tong toan bo, loc `page_id` thi theo page.
+
+### Fixed
+- Chuan hoa so sanh gio den han queue theo gio local (tranh dang som job chua den gio).
+- Khoa switch len lich tren man edit khi bai da `posted` de tranh hieu nham UX.
+
+### Notes
+- Tai lieu memory da dat tai `docs/PROJECT_MEMORY.md`.
+- Khuyen nghi `post_queue.media_path` dung `TEXT` neu co kha nang luu JSON nhieu anh.
