@@ -4,6 +4,7 @@
 // Khai báo dưới dạng HẰNG SỐ để không phải dùng $GLOBALS
 
 define('BASE_URL'       , 'http://localhost/code3');
+define('TITLE_BASE'       , 'Hệ thống quản lý Pages Facebook');
 
 define('DB_HOST'    , 'localhost');
 define('DB_PORT'    , 3306);

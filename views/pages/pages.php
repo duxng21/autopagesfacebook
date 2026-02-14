@@ -108,8 +108,9 @@
 
                                             <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
                                                 <div class="card-body">
-                                                    Pastry pudding cookie toffee bonbon jujubes jujubes powder topping. Jelly beans gummi bears sweet roll
-                                                    bonbon muffin liquorice. Wafer lollipop sesame snaps.
+                                                    Truy cập: <strong><a href="https://developers.facebook.com/tools/explorer/">Developer Facebook</a></strong>. Tạo app và làm các thao tác để <strong>Generate Token</strong>.<br><br>
+                                                    Copy <strong>AccessToken</strong> đó. Đó là <strong>AccessTokenUser</strong> và hạn sử dụng trong 1 giờ. Đọc các bước sau để gia hạn token sử dụng lâu hơn.<br><br>
+                                                    - Yêu cầu có các quyền: <strong>pages_show_list</strong>, <strong>pages_read_engagement</strong>, <strong>pages_manager_posts</strong>.
                                                 </div>
                                             </div>
                                         </div>
@@ -121,8 +122,8 @@
                                             </div>
                                             <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
                                                 <div class="card-body">
-                                                    Sweet pie candy jelly. Sesame snaps biscuit sugar plum. Sweet roll topping fruitcake. Caramels
-                                                    liquorice biscuit ice cream fruitcake cotton candy tart.
+                                                    Truy cập: <strong><a href="https://developers.facebook.com/tools/debug/accesstoken/">Trình gỡ lỗi truy cập</a></strong> để gia hạn <strong>AccessTokenUser</strong> từ <strong>1 tiếng</strong> lên thành <strong>2 tháng</strong>.<br><br>
+                                                    Lướt xuống, thấy nút bấm <strong>Mở rộng</strong> -> Bấm để <strong>gia hạn</strong>.
                                                 </div>
                                             </div>
                                         </div>
@@ -134,21 +135,8 @@
                                             </div>
                                             <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
                                                 <div class="card-body">
-                                                    Tart gummies dragée lollipop fruitcake pastry oat cake. Cookie jelly jelly macaroon icing jelly beans
-                                                    soufflé cake sweet. Macaroon sesame snaps cheesecake tart cake sugar plum.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="collapse-margin">
-                                            <div class="card-header collapsed" id="headingFour" data-toggle="collapse" role="button" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                                                <span class="lead collapse-title">
-                                                    Bước 4
-                                                </span>
-                                            </div>
-                                            <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionExample">
-                                                <div class="card-body">
-                                                    Cheesecake muffin cupcake dragée lemon drops tiramisu cake gummies chocolate cake. Marshmallow tart
-                                                    croissant. Tart dessert tiramisu marzipan lollipop lemon drops.
+                                                    Hãy copy <strong>AccessTokenUser</strong> mới đó và dán vào <strong>Input</strong> trong Website để thêm.<br><br>
+                                                    Pages nào không cần nữa hãy ấn <strong>Icon <i class="feather icon-trash"></i></strong>.
                                                 </div>
                                             </div>
                                         </div>
