@@ -339,27 +339,31 @@ class PostsController
         }
 
         $post = $this->postModel->getById($id);
-        if (!$post || empty($post['fb_post_id'])) {
-            set_status('danger', 'Không tìm thấy fb_post_id để xoá.');
+        if (!$post) {
+            set_status('danger', 'Không tìm thấy bài viết.');
             header('Location: ?act=posts');
             exit;
         }
 
-        $pageModel = new FbPageModel();
-        $page = $pageModel->getByPageId($post['page_id']);
+        $isDraft = ($post['status'] === 'draft' || empty($post['fb_post_id']));
 
-        if (!$page || empty($page['token_page'])) {
-            set_status('danger', 'Thiếu token page.');
-            header('Location: ?act=posts');
-            exit;
-        }
+        if (!$isDraft) {
+            $pageModel = new FbPageModel();
+            $page = $pageModel->getByPageId($post['page_id']);
 
-        $res = $this->fbService->deletePost($post['fb_post_id'], $page['token_page']);
+            if (!$page || empty($page['token_page'])) {
+                set_status('danger', 'Thiếu token page.');
+                header('Location: ?act=posts');
+                exit;
+            }
 
-        if (!empty($res['error'])) {
-            set_status('danger', $res['error']['message'] ?? 'Xoá thất bại.');
-            header('Location: ?act=posts');
-            exit;
+            $res = $this->fbService->deletePost($post['fb_post_id'], $page['token_page']);
+
+            if (!empty($res['error'])) {
+                set_status('danger', $res['error']['message'] ?? 'Xoá thất bại.');
+                header('Location: ?act=posts');
+                exit;
+            }
         }
 
         // Xoá file local nếu có
@@ -381,7 +385,8 @@ class PostsController
         // Tuỳ chọn: xoá DB sau khi xoá FB
         $this->postModel->deleteById($id);
 
-        set_status('success', 'Đã xoá bài trên Facebook.');
+        $msg = $isDraft ? 'Đã xoá bài nháp.' : 'Đã xoá bài trên Facebook.';
+        set_status('success', $msg);
         header('Location: ?act=posts');
         exit;
     }
