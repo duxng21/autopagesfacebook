@@ -244,3 +244,4 @@
 - Controller `PostsController.php` (ham `create`) uu tien viec luu database voi bien `status = draft` cung null hoan toan `fb_post_id`.
 - Graph API Call toi backend Facebook duoc cat dut hoan toan de dam bao bai viet nam do va khong di dau ca.
 - Luu hoan toan binh thuong (khi ca khong co media hoac co media text hay video).
+- Chinh sua ham `delete`: Cho phep xoa cac ban nhap (status draft / fb_post_id null) ma khong goi den mang Facebook API. Xoa luon file local (hinh/video) kem theo truoc.

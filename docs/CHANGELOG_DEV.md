@@ -110,3 +110,4 @@
 
 ### Changed
 - Refactor nhe dau ham `create()` trong `PostsController`.
+- Sua ham `delete()` trong `PostsController` de bo qua Facebook API neu bai co trang thai `draft` (hoac khong co `fb_post_id`), giup the xoa file anh/video va xoa row DB an toan cho cac ban nhap.
