@@ -101,3 +101,12 @@
 ### Notes
 - Tai lieu memory da dat tai `docs/PROJECT_MEMORY.md`.
 - Khuyen nghi `post_queue.media_path` dung `TEXT` neu co kha nang luu JSON nhieu anh.
+
+## 2026-02-22 (Session Update)
+### Added
+- Chuc nang "Luu nhap (Khong dang len FB)" trong trang them bai viet (`post-add`).
+- Giao dien `views/pages/posts/create.php` bo sung switch `is_draft`. Su dung JS de xu ly toggle doc quyen giua switch "Luu nhap" va "Len lich".
+- Logic server `PostsController.php`: khi `is_draft` duoc bat roi, he thong se huy bo trang thai len lich (`isScheduled = false`), luu file media local nhu binh thuong, nhung hoan toan bo qua cac API call sang Facebook (Graph API). Database luu trang thai mang gia tri `draft` theo schema hien co, va `fb_post_id` la `null`.
+
+### Changed
+- Refactor nhe dau ham `create()` trong `PostsController`.

@@ -76,6 +76,23 @@
                                                     </div>
                                                 </div>
 
+                                                <!-- Switch lưu nháp -->
+                                                <div class="col-12">
+                                                    <div class="form-group">
+                                                        <div class="custom-control custom-switch custom-control-inline">
+                                                            <input type="checkbox"
+                                                                class="custom-control-input"
+                                                                id="draftSwitch"
+                                                                name="is_draft">
+                                                            <label class="custom-control-label"
+                                                                for="draftSwitch"></label>
+                                                            <span class="switch-label text-warning font-weight-bold">
+                                                                Lưu nháp (Không đăng lên FB)
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <!-- Switch lên lịch -->
                                                 <div class="col-12">
                                                     <div class="form-group">
@@ -142,11 +159,24 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const switchEl = document.getElementById('scheduleSwitch');
+    const draftSwitchEl = document.getElementById('draftSwitch');
     const box = document.getElementById('scheduleBox');
 
     if (switchEl && box) {
         switchEl.addEventListener('change', function() {
             box.style.display = this.checked ? 'block' : 'none';
+            if (this.checked && draftSwitchEl) {
+                draftSwitchEl.checked = false; // Tắt lưu nháp nếu bật lên lịch
+            }
+        });
+    }
+
+    if (draftSwitchEl) {
+        draftSwitchEl.addEventListener('change', function() {
+            if (this.checked && switchEl) {
+                switchEl.checked = false; // Tắt lên lịch nếu lưu nháp
+                box.style.display = 'none';
+            }
         });
     }
 

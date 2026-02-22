@@ -62,7 +62,8 @@ class PostsController
 
         $content = trim($_POST['content'] ?? '');
         $pageIds = $_POST['page_ids'] ?? [];
-        $isScheduled = !empty($_POST['is_scheduled']);
+        $isDraft = !empty($_POST['is_draft']);
+        $isScheduled = !$isDraft && !empty($_POST['is_scheduled']); // Nếu lưu nháp thì ép huỷ lịch
         $scheduledAt = $isScheduled ? ($_POST['scheduled_at'] ?? null) : null;
         $menuId = (int)($_POST['menu_id'] ?? 0);
 
@@ -131,7 +132,7 @@ class PostsController
             $pageId = $p['page_id'];
             $pageToken = $p['token_page'];
 
-            if (!$pageToken) {
+            if (!$isDraft && !$pageToken) {
                 $hasError = true;
                 $messages[] = "{$pageId}: thiếu page token";
                 continue;
@@ -139,6 +140,22 @@ class PostsController
 
             // CASE 1: Chỉ có text
             if (!$hasImage && !$hasVideo) {
+                if ($isDraft) {
+                    $postModel->create([
+                        ':menu_id' => $menuId > 0 ? $menuId : null,
+                        ':page_id' => $pageId,
+                        ':fb_post_id' => null,
+                        ':content' => $content,
+                        ':media_type' => 'none',
+                        ':media_path' => null,
+                        ':status' => 'draft',
+                        ':scheduled_at' => null,
+                        ':posted_at' => null,
+                    ]);
+                    $messages[] = "{$pageId}: đã lưu nháp text";
+                    continue;
+                }
+
                 $res = $this->fbService->postText($pageId, $pageToken, $content, $scheduleTs);
 
                 if (!empty($res['error'])) {
@@ -172,12 +189,37 @@ class PostsController
                     if (!$path) continue;
 
                     $paths[] = $path;
-                    $abs = PATH_ROOT . $path;
-
-                    $up = $this->fbService->uploadPhotoUnpublished($pageId, $pageToken, $abs);
-                    if (!empty($up['id'])) {
-                        $photoIds[] = $up['id'];
+                    
+                    if (!$isDraft) {
+                        $abs = PATH_ROOT . $path;
+                        $up = $this->fbService->uploadPhotoUnpublished($pageId, $pageToken, $abs);
+                        if (!empty($up['id'])) {
+                            $photoIds[] = $up['id'];
+                        }
                     }
+                }
+
+                $mediaPath = count($paths) > 1 ? json_encode($paths) : ($paths[0] ?? null);
+
+                if ($isDraft) {
+                    if (!empty($paths)) {
+                        $postModel->create([
+                            ':menu_id' => $menuId > 0 ? $menuId : null,
+                            ':page_id' => $pageId,
+                            ':fb_post_id' => null,
+                            ':content' => $content,
+                            ':media_type' => 'image',
+                            ':media_path' => $mediaPath,
+                            ':status' => 'draft',
+                            ':scheduled_at' => null,
+                            ':posted_at' => null,
+                        ]);
+                        $messages[] = "{$pageId}: đã lưu nháp bài ảnh";
+                    } else {
+                        $hasError = true;
+                        $messages[] = "{$pageId}: không thể lưu file ảnh tĩnh cục bộ";
+                    }
+                    continue;
                 }
 
                 if (!empty($photoIds)) {
@@ -187,8 +229,6 @@ class PostsController
                         $hasError = true;
                         $messages[] = "{$pageId}: " . ($res['error']['message'] ?? 'error');
                     } else {
-                        $mediaPath = count($paths) > 1 ? json_encode($paths) : ($paths[0] ?? null);
-
                         $postModel->create([
                             ':menu_id' => $menuId > 0 ? $menuId : null,
                             ':page_id' => $pageId,
@@ -205,7 +245,7 @@ class PostsController
                     }
                 } else {
                     $hasError = true;
-                    $messages[] = "{$pageId}: upload ảnh thất bại";
+                    $messages[] = "{$pageId}: upload ảnh lên Facebook thất bại";
                 }
                 continue;
             }
@@ -216,7 +256,23 @@ class PostsController
                 $path = uploadFile($f, 'uploads/posts/');
                 if (!$path) {
                     $hasError = true;
-                    $messages[] = "{$pageId}: upload video thất bại";
+                    $messages[] = "{$pageId}: upload video local thất bại";
+                    continue;
+                }
+
+                if ($isDraft) {
+                    $postModel->create([
+                        ':menu_id' => $menuId > 0 ? $menuId : null,
+                        ':page_id' => $pageId,
+                        ':fb_post_id' => null,
+                        ':content' => $content,
+                        ':media_type' => 'video',
+                        ':media_path' => $path,
+                        ':status' => 'draft',
+                        ':scheduled_at' => null,
+                        ':posted_at' => null,
+                    ]);
+                    $messages[] = "{$pageId}: đã lưu nháp bài video";
                     continue;
                 }
 

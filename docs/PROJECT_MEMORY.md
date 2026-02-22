@@ -237,3 +237,10 @@
 - Khu vuc thong ke "Dang hang loat" da bo sung so lieu theo `post_queue`:
 - tong, queued/processing, posted, failed.
 - Cac block chi tiet phu co the an/hien theo trang thai dang loc (theo UI comment trong view).
+
+## 12) Session Update 2026-02-22
+### Them chuc nang luu nhap (`draft`)
+- Duoc bo sung trong form `views/pages/posts/create.php` bang cach tich vao switch "Luu nhap". Toan bo chuc nang hen gio se tu tat de ranh chap.
+- Controller `PostsController.php` (ham `create`) uu tien viec luu database voi bien `status = draft` cung null hoan toan `fb_post_id`.
+- Graph API Call toi backend Facebook duoc cat dut hoan toan de dam bao bai viet nam do va khong di dau ca.
+- Luu hoan toan binh thuong (khi ca khong co media hoac co media text hay video).
